@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16.448" height="17.609" viewBox="0 0 16.448 17.609">
+  <g id="moon" transform="translate(-15)">
+    <path id="Tracé_2" data-name="Tracé 2" d="M282.161,129.026l-1.531.323,1.048,1.161-.166,1.555,1.428-.638,1.428.638-.166-1.555,1.048-1.161-1.531-.323-.78-1.356Z" transform="translate(-255.35 -122.729)" fill="#fbfcff"/>
+    <path id="Tracé_3" data-name="Tracé 3" d="M364.794,298.353l-1-.212-.511-.888-.511.888-1,.212.687.761-.109,1.019.936-.418.936.418-.109-1.019Z" transform="translate(-333.346 -285.749)" fill="#fbfcff"/>
+    <path id="Tracé_4" data-name="Tracé 4" d="M22.856,8.8A8.8,8.8,0,0,1,27.732.923a8.8,8.8,0,1,0,0,15.762A8.8,8.8,0,0,1,22.856,8.8Z" fill="#fbfcff"/>
+  </g>
+</svg>
