@@ -33,7 +33,7 @@ function makeNewPosition(elt) {
   return [nh, nw, angle];
 }
 
-let speed = 50;
+let speed = 35;
 
 const animateTo = (elt, params) => {
   $(elt).css(params);
@@ -169,8 +169,6 @@ window.onkeydown = (e) => {
 
   switch (e.key) {
     case "q":
-    
-
       let offset = $("#tank1").offset();
       let width = $("#tank1").width();
       let height = $("#tank1").height();
@@ -178,7 +176,7 @@ window.onkeydown = (e) => {
       let centerX = offset.left + width / 2 - 5;
       let centerY = offset.top + height / 2 - 5;
 
-      let target_bullet = "#bul" + Math.floor(Math.random() * 100000);
+      let target_bullet = "bul" + Math.floor(Math.random() * 100000);
 
       let bullet = document.createElement("div");
       // bullet.setAttribute("forElement","elt");
@@ -195,7 +193,10 @@ window.onkeydown = (e) => {
 
       // $(".gamer_verser").append(bullet);
       // $(".gamer_verser").append(bullet);
-      document.querySelector(".gamer_verser").appendChild(bullet);
+      document.querySelector(".body .gamer_verser").appendChild(bullet);
+
+      console.log("bullet", bullet);
+
       // $(target_bullet).css({
       //   left:`${centerX}`,
       //   top:`${centerY}`,
@@ -208,16 +209,50 @@ window.onkeydown = (e) => {
 
       switch (rotate) {
         case "rotate(-90deg)":
-          $(target_bullet).animate(
+
+          $("#"+target_bullet).animate(
             {
-              left: "-200px",
+              left: "-200%",
             },
-            1000
-          ,function(params) {
-            console.log("shoot to left");
-          });
-        
+            1200
+          );
+          console.log("shoot to left");
+
           break;
+
+          case "rotate(0deg)":
+
+            $("#"+target_bullet).animate(
+              {
+                top: "-200%",
+              },
+              1000
+            );
+            console.log("shoot to top");
+  
+            break;
+          case "rotate(90deg)":
+
+            $("#"+target_bullet).animate(
+              {
+                left: "200%",
+              },
+              1000
+            );
+            console.log("shoot to right");
+  
+            break;
+          case "rotate(180deg)":
+
+            $("#"+target_bullet).animate(
+              {
+                top: "200%",
+              },
+              1000
+            );
+            console.log("shoot to bottom");
+  
+            break;
 
         default:
           break;
