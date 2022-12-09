@@ -583,9 +583,14 @@ let option = {
   format: "rgb",
 };
 
+
+
+
 let text_color = randomColor(option);
-// $("body").attr("text_color", text_color);
+
+let tankId = "tank" + Math.floor(Math.random() * 100000);
 document.querySelector('.body').setAttribute("text_color",text_color)
+document.querySelector('.body').setAttribute("tankid",tankId);
 $("#input_message").keyup(function (event) {
   if (event.keyCode == 13) {
     if (event.shiftKey) {
@@ -629,21 +634,27 @@ conn.onopen = function (e) {
   console.log("Connection established!");
 
   let msg = "There is new user. <br> Say Hello!";
+
+  let temp_tankID = "#" + $("body").attr("tankid");
+  fn_init_tank(temp_tankID);
+
   let transport = {
     message: msg,
     color: text_color,
+    tankUser: tankId,
+    position:{
+      x:sss,
+      y:sss
+    }
   };
 
   transport = JSON.stringify(transport);
   conn.send(transport);
   console.log(msg);
 
-  $.ajax({
-    type: "GET",
-    url: `https://fentasunlightsarl.com/notify.php?msg=${msg}`,
-  }).done(function (response) {
-    console.log(response);
-  });
+
+
+
 };
 
 function getTime() {
@@ -680,8 +691,6 @@ let months = [
   "December",
 ];
 
-// let day = days[now.getDay()];
-// let month = months[now.getMonth()];
 
 function getFullDate() {
   let actual = new Date();
@@ -756,6 +765,7 @@ function switch_theme() {
   }
 }
 
+
 $("#switch_theme").on("click", function (params) {
   switch_theme();
 });
@@ -769,6 +779,7 @@ setInterval(function () {
 setInterval(function () {
   citation();
 }, 20000);
+
 
 conn.onmessage = function (e) {
   let time = getTime();
@@ -789,15 +800,22 @@ conn.onmessage = function (e) {
     <div class="item_msg receive">
     <div class="item_msg_box"  style="background:${obj.color}">${obj.message}</div>
     <div class="item_msg_box_time">${time}</div>
-  </div>
+    </div>
     `;
     document.querySelector("#message").pause();
     document.querySelector("#message").play();
     $("#message_root").append(message);
     chat_container.scrollTop =
-      chat_container.scrollHeight - chat_container.clientHeight;
+    chat_container.scrollHeight - chat_container.clientHeight;
+
+
+    initTank(obj.tankUser,obj.pos);
+
+
   }
 };
+
+
 
 $("#btn_send").on("click", function () {
   let msg = $("#input_message").val().trim();
@@ -829,6 +847,7 @@ $("#btn_send").on("click", function () {
     $("#input_message").val("");
   }
 });
+
 
 $("#input_message").on("input", function () {
   $("#alert_action").addClass("alert");

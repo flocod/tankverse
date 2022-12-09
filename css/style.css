@@ -850,5 +850,61 @@ a :hover {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: rgb(221, 0, 0);
+  background: rgb(255, 255, 255);
+}
+
+.padtouch {
+  position: fixed;
+  bottom: 3%;
+  left: 50%;
+  -webkit-transform: translate(-50%);
+          transform: translate(-50%);
+  z-index: 1000;
+  width: 300px;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+.padtouch .contain_touch {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  width: 100%;
+}
+.padtouch .contain_touch .touch {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  height: 60px;
+  width: 60px;
+  margin: 3px;
+  background: white;
+  color: #282a37;
+  font-size: 1.5em;
+  opacity: 0.1;
+  -webkit-transition: 0.3;
+  transition: 0.3;
+}
+.padtouch .contain_touch .touch:active {
+  opacity: 1;
+  -webkit-transition: 0.3;
+  transition: 0.3;
+}
+.padtouch .contain_touch .active {
+  opacity: 1;
+  -webkit-transition: 0.3;
+  transition: 0.3;
 }
