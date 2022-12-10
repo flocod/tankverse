@@ -19,11 +19,11 @@ $("#fire").trigger('load');
 
 function play_audio(task) {
       if(task == 'play'){
-           $("#fire").trigger('play');
+           $("#fired").trigger('play');
       }
       if(task == 'stop'){
-           $("#fire").trigger('pause');
-           $("#fire").prop("currentTime",0);
+           $("#fired").trigger('pause');
+           $("#fired").prop("currentTime",0);
       }
  }
 
@@ -123,11 +123,9 @@ const shoot = (elt) => {
     `left:${centerX}px;top:${centerY}px; display:block;`
   );
 
-  // function play() {
-  //   var audio = document.getElementById("fire")[0];
-  //   audio.play();
-  // }
-  // play();
+  play_audio("stop");
+
+  play_audio("play");
   
   document.querySelector(".body .gamer_verser").appendChild(bullet);
 
@@ -384,6 +382,7 @@ onkeydown = onkeyup = (e) => {
   if (keys["Numpad1"] && e.code == "Numpad1") {
     // console.log("Key : ", e.code);
     shoot(elt);
+    showArrow("#fire");
     // console.log("Tirer tirer -------->");
   }
 };
