@@ -1,867 +1,389 @@
-let chat_container = document.querySelector("#chat_container");
-chat_container.scrollTop =
-  chat_container.scrollHeight - chat_container.clientHeight;
-
-// Seed to get repeatable colors
-var seed = null;
-
-// Shared color dictionary
-var colorDictionary = {};
-
-// Populate the color dictionary
-loadColorBounds();
-
-// check if a range is taken
-var colorRanges = [];
-
-// export default function randomColor(options) {
-function randomColor(options) {
-  options = options || {};
-
-  // Check if there is a seed and ensure it's an
-  // integer. Otherwise, reset the seed value.
-  if (
-    options.seed !== undefined &&
-    options.seed !== null &&
-    options.seed === parseInt(options.seed, 10)
-  ) {
-    seed = options.seed;
-
-    // A string was passed as a seed
-  } else if (typeof options.seed === "string") {
-    seed = stringToInteger(options.seed);
-
-    // Something was passed as a seed but it wasn't an integer or string
-  } else if (options.seed !== undefined && options.seed !== null) {
-    throw new TypeError("The seed value must be an integer or string");
-
-    // No seed, reset the value outside.
-  } else {
-    seed = null;
-  }
-
-  var H, S, B;
-
-  // Check if we need to generate multiple colors
-  if (options.count !== null && options.count !== undefined) {
-    var totalColors = options.count,
-      colors = [];
-    // Value false at index i means the range i is not taken yet.
-    for (var i = 0; i < options.count; i++) {
-      colorRanges.push(false);
-    }
-    options.count = null;
-
-    while (totalColors > colors.length) {
-      var color = randomColor(options);
-
-      if (seed !== null) {
-        options.seed = seed;
-      }
-
-      colors.push(color);
-    }
-
-    options.count = totalColors;
-
-    return colors;
-  }
-
-  // First we pick a hue (H)
-  H = pickHue(options);
-
-  // Then use H to determine saturation (S)
-  S = pickSaturation(H, options);
-
-  // Then use S and H to determine brightness (B).
-  B = pickBrightness(H, S, options);
-
-  // Then we return the HSB color in the desired format
-  return setFormat([H, S, B], options);
-}
-
-function pickHue(options) {
-  if (colorRanges.length > 0) {
-    var hueRange = getRealHueRange(options.hue);
-
-    var hue = randomWithin(hueRange);
-
-    //Each of colorRanges.length ranges has a length equal approximatelly one step
-    var step = (hueRange[1] - hueRange[0]) / colorRanges.length;
-
-    var j = parseInt((hue - hueRange[0]) / step);
-
-    //Check if the range j is taken
-    if (colorRanges[j] === true) {
-      j = (j + 2) % colorRanges.length;
-    } else {
-      colorRanges[j] = true;
-    }
-
-    var min = (hueRange[0] + j * step) % 359,
-      max = (hueRange[0] + (j + 1) * step) % 359;
-
-    hueRange = [min, max];
-
-    hue = randomWithin(hueRange);
-
-    if (hue < 0) {
-      hue = 360 + hue;
-    }
-    return hue;
-  } else {
-    var hueRange = getHueRange(options.hue);
-
-    hue = randomWithin(hueRange);
-    // Instead of storing red as two seperate ranges,
-    // we group them, using negative numbers
-    if (hue < 0) {
-      hue = 360 + hue;
-    }
-
-    return hue;
-  }
-}
-
-function pickSaturation(hue, options) {
-  if (options.hue === "monochrome") {
-    return 0;
-  }
-
-  if (options.luminosity === "random") {
-    return randomWithin([0, 100]);
-  }
-
-  var saturationRange = getSaturationRange(hue);
-
-  var sMin = saturationRange[0],
-    sMax = saturationRange[1];
-
-  switch (options.luminosity) {
-    case "bright":
-      sMin = 55;
-      break;
-
-    case "dark":
-      sMin = sMax - 10;
-      break;
-
-    case "light":
-      sMax = 55;
-      break;
-  }
-
-  return randomWithin([sMin, sMax]);
-}
-
-function pickBrightness(H, S, options) {
-  var bMin = getMinimumBrightness(H, S),
-    bMax = 100;
-
-  switch (options.luminosity) {
-    case "dark":
-      bMax = bMin + 20;
-      break;
-
-    case "light":
-      bMin = (bMax + bMin) / 2;
-      break;
-
-    case "random":
-      bMin = 0;
-      bMax = 100;
-      break;
-  }
-
-  return randomWithin([bMin, bMax]);
-}
-
-function setFormat(hsv, options) {
-  switch (options.format) {
-    case "hsvArray":
-      return hsv;
-
-    case "hslArray":
-      return HSVtoHSL(hsv);
-
-    case "hsl":
-      var hsl = HSVtoHSL(hsv);
-      return "hsl(" + hsl[0] + ", " + hsl[1] + "%, " + hsl[2] + "%)";
-
-    case "hsla":
-      var hslColor = HSVtoHSL(hsv);
-      var alpha = options.alpha || Math.random();
-      return (
-        "hsla(" +
-        hslColor[0] +
-        ", " +
-        hslColor[1] +
-        "%, " +
-        hslColor[2] +
-        "%, " +
-        alpha +
-        ")"
-      );
-
-    case "rgbArray":
-      return HSVtoRGB(hsv);
-
-    case "rgb":
-      var rgb = HSVtoRGB(hsv);
-      return "rgb(" + rgb.join(", ") + ")";
-
-    case "rgba":
-      var rgbColor = HSVtoRGB(hsv);
-      var alpha = options.alpha || Math.random();
-      return "rgba(" + rgbColor.join(", ") + ", " + alpha + ")";
-
-    default:
-      return HSVtoHex(hsv);
-  }
-}
-
-function getMinimumBrightness(H, S) {
-  var lowerBounds = getColorInfo(H).lowerBounds;
-
-  for (var i = 0; i < lowerBounds.length - 1; i++) {
-    var s1 = lowerBounds[i][0],
-      v1 = lowerBounds[i][1];
-
-    var s2 = lowerBounds[i + 1][0],
-      v2 = lowerBounds[i + 1][1];
-
-    if (S >= s1 && S <= s2) {
-      var m = (v2 - v1) / (s2 - s1),
-        b = v1 - m * s1;
-
-      return m * S + b;
-    }
-  }
-
-  return 0;
-}
-
-function getHueRange(colorInput) {
-  if (typeof parseInt(colorInput) === "number") {
-    var number = parseInt(colorInput);
-
-    if (number < 360 && number > 0) {
-      return [number, number];
-    }
-  }
-
-  if (typeof colorInput === "string") {
-    if (colorDictionary[colorInput]) {
-      var color = colorDictionary[colorInput];
-      if (color.hueRange) {
-        return color.hueRange;
-      }
-    } else if (colorInput.match(/^#?([0-9A-F]{3}|[0-9A-F]{6})$/i)) {
-      var hue = HexToHSB(colorInput)[0];
-      return [hue, hue];
-    }
-  }
-
-  return [0, 360];
-}
-
-function getSaturationRange(hue) {
-  return getColorInfo(hue).saturationRange;
-}
-
-function getColorInfo(hue) {
-  // Maps red colors to make picking hue easier
-  if (hue >= 334 && hue <= 360) {
-    hue -= 360;
-  }
-
-  for (var colorName in colorDictionary) {
-    var color = colorDictionary[colorName];
-    if (
-      color.hueRange &&
-      hue >= color.hueRange[0] &&
-      hue <= color.hueRange[1]
-    ) {
-      return colorDictionary[colorName];
-    }
-  }
-  return "Color not found";
-}
-
-function randomWithin(range) {
-  if (seed === null) {
-    //generate random evenly destinct number from : https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
-    var golden_ratio = 0.618033988749895;
-    var r = Math.random();
-    r += golden_ratio;
-    r %= 1;
-    return Math.floor(range[0] + r * (range[1] + 1 - range[0]));
-  } else {
-    //Seeded random algorithm from http://indiegamr.com/generate-repeatable-random-numbers-in-js/
-    var max = range[1] || 1;
-    var min = range[0] || 0;
-    seed = (seed * 9301 + 49297) % 233280;
-    var rnd = seed / 233280.0;
-    return Math.floor(min + rnd * (max - min));
-  }
-}
-
-function HSVtoHex(hsv) {
-  var rgb = HSVtoRGB(hsv);
-
-  function componentToHex(c) {
-    var hex = c.toString(16);
-    return hex.length == 1 ? "0" + hex : hex;
-  }
-
-  var hex =
-    "#" +
-    componentToHex(rgb[0]) +
-    componentToHex(rgb[1]) +
-    componentToHex(rgb[2]);
-
-  return hex;
-}
-
-function defineColor(name, hueRange, lowerBounds) {
-  var sMin = lowerBounds[0][0],
-    sMax = lowerBounds[lowerBounds.length - 1][0],
-    bMin = lowerBounds[lowerBounds.length - 1][1],
-    bMax = lowerBounds[0][1];
-
-  colorDictionary[name] = {
-    hueRange: hueRange,
-    lowerBounds: lowerBounds,
-    saturationRange: [sMin, sMax],
-    brightnessRange: [bMin, bMax],
-  };
-}
-
-function loadColorBounds() {
-  defineColor("monochrome", null, [
-    [0, 0],
-    [100, 0],
-  ]);
-
-  defineColor(
-    "red",
-    [-26, 18],
-    [
-      [20, 100],
-      [30, 92],
-      [40, 89],
-      [50, 85],
-      [60, 78],
-      [70, 70],
-      [80, 60],
-      [90, 55],
-      [100, 50],
-    ]
-  );
-
-  defineColor(
-    "orange",
-    [18, 46],
-    [
-      [20, 100],
-      [30, 93],
-      [40, 88],
-      [50, 86],
-      [60, 85],
-      [70, 70],
-      [100, 70],
-    ]
-  );
-
-  defineColor(
-    "yellow",
-    [46, 62],
-    [
-      [25, 100],
-      [40, 94],
-      [50, 89],
-      [60, 86],
-      [70, 84],
-      [80, 82],
-      [90, 80],
-      [100, 75],
-    ]
-  );
-
-  defineColor(
-    "green",
-    [62, 178],
-    [
-      [30, 100],
-      [40, 90],
-      [50, 85],
-      [60, 81],
-      [70, 74],
-      [80, 64],
-      [90, 50],
-      [100, 40],
-    ]
-  );
-
-  defineColor(
-    "blue",
-    [178, 257],
-    [
-      [20, 100],
-      [30, 86],
-      [40, 80],
-      [50, 74],
-      [60, 60],
-      [70, 52],
-      [80, 44],
-      [90, 39],
-      [100, 35],
-    ]
-  );
-
-  defineColor(
-    "purple",
-    [257, 282],
-    [
-      [20, 100],
-      [30, 87],
-      [40, 79],
-      [50, 70],
-      [60, 65],
-      [70, 59],
-      [80, 52],
-      [90, 45],
-      [100, 42],
-    ]
-  );
-
-  defineColor(
-    "pink",
-    [282, 334],
-    [
-      [20, 100],
-      [30, 90],
-      [40, 86],
-      [60, 84],
-      [80, 80],
-      [90, 75],
-      [100, 73],
-    ]
-  );
-}
-
-function HSVtoRGB(hsv) {
-  // this doesn't work for the values of 0 and 360
-  // here's the hacky fix
-  var h = hsv[0];
-  if (h === 0) {
-    h = 1;
-  }
-  if (h === 360) {
-    h = 359;
-  }
-
-  // Rebase the h,s,v values
-  h = h / 360;
-  var s = hsv[1] / 100,
-    v = hsv[2] / 100;
-
-  var h_i = Math.floor(h * 6),
-    f = h * 6 - h_i,
-    p = v * (1 - s),
-    q = v * (1 - f * s),
-    t = v * (1 - (1 - f) * s),
-    r = 256,
-    g = 256,
-    b = 256;
-
-  switch (h_i) {
-    case 0:
-      r = v;
-      g = t;
-      b = p;
-      break;
-    case 1:
-      r = q;
-      g = v;
-      b = p;
-      break;
-    case 2:
-      r = p;
-      g = v;
-      b = t;
-      break;
-    case 3:
-      r = p;
-      g = q;
-      b = v;
-      break;
-    case 4:
-      r = t;
-      g = p;
-      b = v;
-      break;
-    case 5:
-      r = v;
-      g = p;
-      b = q;
-      break;
-  }
-
-  var result = [Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255)];
-  return result;
-}
-
-function HexToHSB(hex) {
-  hex = hex.replace(/^#/, "");
-  hex = hex.length === 3 ? hex.replace(/(.)/g, "$1$1") : hex;
-
-  var red = parseInt(hex.substr(0, 2), 16) / 255,
-    green = parseInt(hex.substr(2, 2), 16) / 255,
-    blue = parseInt(hex.substr(4, 2), 16) / 255;
-
-  var cMax = Math.max(red, green, blue),
-    delta = cMax - Math.min(red, green, blue),
-    saturation = cMax ? delta / cMax : 0;
-
-  switch (cMax) {
-    case red:
-      return [60 * (((green - blue) / delta) % 6) || 0, saturation, cMax];
-    case green:
-      return [60 * ((blue - red) / delta + 2) || 0, saturation, cMax];
-    case blue:
-      return [60 * ((red - green) / delta + 4) || 0, saturation, cMax];
-  }
-}
-
-function HSVtoHSL(hsv) {
-  var h = hsv[0],
-    s = hsv[1] / 100,
-    v = hsv[2] / 100,
-    k = (2 - s) * v;
-
-  return [
-    h,
-    Math.round(((s * v) / (k < 1 ? k : 2 - k)) * 10000) / 100,
-    (k / 2) * 100,
-  ];
-}
-
-function stringToInteger(string) {
-  var total = 0;
-  for (var i = 0; i !== string.length; i++) {
-    if (total >= Number.MAX_SAFE_INTEGER) break;
-    total += string.charCodeAt(i);
-  }
-  return total;
-}
-
-// get The range of given hue when options.count!=0
-function getRealHueRange(colorHue) {
-  if (!isNaN(colorHue)) {
-    var number = parseInt(colorHue);
-
-    if (number < 360 && number > 0) {
-      return getColorInfo(colorHue).hueRange;
-    }
-  } else if (typeof colorHue === "string") {
-    if (colorDictionary[colorHue]) {
-      var color = colorDictionary[colorHue];
-
-      if (color.hueRange) {
-        return color.hueRange;
-      }
-    } else if (colorHue.match(/^#?([0-9A-F]{3}|[0-9A-F]{6})$/i)) {
-      var hue = HexToHSB(colorHue)[0];
-      return getColorInfo(hue).hueRange;
-    }
-  }
-}
-
-let option = {
-  luminosity: "dark",
-  format: "rgb",
-};
-
-
-
-
-let text_color = randomColor(option);
 
 let tankId = "tank" + Math.floor(Math.random() * 100000);
-document.querySelector('.body').setAttribute("text_color",text_color)
-document.querySelector('.body').setAttribute("tankid",tankId);
-$("#input_message").keyup(function (event) {
-  if (event.keyCode == 13) {
-    if (event.shiftKey) {
-      event.stopPropagation();
+document.querySelector(".body").setAttribute("tankid", tankId);
+
+let speed = 35;
+let gunSpeed = 1020;
+
+let enemies= 10; 
+let ennemies_tank= `<img src="images/tank.svg" alt="">`
+let rotatedeg = [0, 90, -90, 180];
+
+const animateTo = (elt, params) => {
+  $(elt).css(params);
+};
+
+
+$("#fire").trigger('load');
+// write methods for playing and stopping
+
+function play_audio(task) {
+      if(task == 'play'){
+           $("#fire").trigger('play');
+      }
+      if(task == 'stop'){
+           $("#fire").trigger('pause');
+           $("#fire").prop("currentTime",0);
+      }
+ }
+
+
+const fn_init_tank = (temp_tankID) => {
+  //tank id with #
+  let tank = document.createElement("div");
+  tank.setAttribute("id", $("body").attr("tankid"));
+  tank.setAttribute("class", "tank");
+  tank.innerHTML = `<img src="images/tank.svg" alt="">`;
+  document.querySelector(".body .gamer_verser").appendChild(tank);
+  console.log("tank", tank);
+  let initTemp = makeNewPosition(temp_tankID);
+  animateTo(
+    temp_tankID,
+    {
+      top: initTemp[0],
+      left: initTemp[1],
+      transform: `rotate(${initTemp[2]}deg)`,
+    },
+    300
+  );
+};
+
+
+let temp_tankID = "#" + $("body").attr("tankid");
+fn_init_tank(temp_tankID);
+
+function shuffle(array) {
+  let currentIndex = array.length,
+    randomIndex;
+
+  // While there remain elements to shuffle.
+  while (currentIndex != 0) {
+    // Pick a remaining element.
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex],
+      array[currentIndex],
+    ];
+  }
+
+  return array;
+}
+
+function makeNewPosition(elt) {
+  // Get viewport dimensions (remove the dimension of the div)
+  let h = window.innerHeight - $(elt).height();
+  let w = window.innerWidth - $(elt).width();
+
+  let nh = Math.floor(Math.random() * h);
+  let nw = Math.floor(Math.random() * w);
+  let angle = shuffle(rotatedeg)[0];
+
+  return [nh, nw, angle];
+}
+
+const initTank = (tankID, position) => {
+  //tank id with #
+  let tank = document.createElement("div");
+  tank.setAttribute("id", tankID);
+  tank.setAttribute("class", "tank");
+  tank.innerHTML = `<img src="images/tank.svg" alt="">`;
+  document.querySelector(".body .gamer_verser").appendChild(tank);
+  console.log("tank", tank);
+
+  animateTo(
+    tankID,
+    {
+      top: position.y,
+      left: position.x,
+      transform: `rotate(${position.angle}deg)`,
+    },
+    300
+  );
+};
+
+const shoot = (elt) => {
+  let offset = $(elt).offset();
+  let width = $(elt).width();
+  let height = $(elt).height();
+
+  let centerX = offset.left + width / 2 - 5;
+  let centerY = offset.top + height / 2 - 5;
+
+  let target_bullet = "bul" + Math.floor(Math.random() * 100000);
+
+  let bullet = document.createElement("div");
+
+  bullet.setAttribute("id", target_bullet);
+  bullet.setAttribute("class", "bullet");
+  bullet.setAttribute(
+    "style",
+    `left:${centerX}px;top:${centerY}px; display:block;`
+  );
+
+  // function play() {
+  //   var audio = document.getElementById("fire")[0];
+  //   audio.play();
+  // }
+  // play();
+  
+  document.querySelector(".body .gamer_verser").appendChild(bullet);
+
+  // console.log("bullet", bullet);
+
+  let rotate = document.querySelector(elt).style.transform;
+
+  setTimeout(() => {
+    $("#" + target_bullet).remove();
+  }, 2000);
+
+  switch (rotate) {
+    case "rotate(-90deg)":
+      $("#" + target_bullet).animate(
+        {
+          left: "-200%",
+        },
+        gunSpeed
+      );
+      console.log("shoot to left");
+
+      break;
+
+    case "rotate(0deg)":
+      $("#" + target_bullet).animate(
+        {
+          top: "-200%",
+        },
+        gunSpeed
+      );
+      console.log("shoot to top");
+
+      break;
+    case "rotate(90deg)":
+      $("#" + target_bullet).animate(
+        {
+          left: "200%",
+        },
+        gunSpeed
+      );
+      console.log("shoot to right");
+
+      break;
+    case "rotate(180deg)":
+      $("#" + target_bullet).animate(
+        {
+          top: "200%",
+        },
+        gunSpeed
+      );
+      console.log("shoot to bottom");
+
+      break;
+
+    default:
+      break;
+  }
+};
+
+const ArrowLeft = (elt) => {
+  let rotate = document.querySelector(elt).style.transform;
+
+  if (rotate != "rotate(-90deg)") {
+    $(elt).css("transform", "rotate(-90deg)");
+  } else {
+    let tempPos = 0;
+    let w = window.innerWidth - $(elt).width();
+
+    let position = $(elt).position();
+    tempPos = position.left - speed;
+
+    if (tempPos <= 0) {
+      let params = {
+        left: 0,
+      };
+      animateTo(elt, params);
+    } else if (tempPos >= w) {
+      let params = {
+        left: w,
+      };
+      animateTo(elt, params);
     } else {
-      $("#btn_send").click();
+      let params = {
+        left: tempPos,
+      };
+      animateTo(elt, params);
     }
-  }
-});
-
-// Envoi d'un texte à tous les utilisateurs à travers le serveur
-function sendText(conn, message) {
-  // Création d'un objet msg qui contient les données
-  // dont le serveur a besoin pour traiter le message
-  var msg = {
-    type: "message",
-    text: message,
-    id: "id",
-    date: Date.now(),
-  };
-
-  // Envoi de l'objet msg à travers une chaîne formatée en JSON
-  conn.send(JSON.stringify(msg));
-
-  //notifyme on email
-
-  // Efface le texte de l'élément input
-  // afin de recevoir la prochaine ligne de texte
-  // que l'utilisateur va saisir
-}
-
-//   ssh key : q%V^pC(B{UL.
-//   var conn = new WebSocket("ws://localhost:8080");
-
-//   var conn = new WebSocket("ws://fentasunlightsarl.com/sever_web");
-let conn = new WebSocket(
-  "wss://socketsbay.com/wss/v2/100/099b14aa2233559879b43f5f56df13d5/"
-);
-
-conn.onopen = function (e) {
-  console.log("Connection established!");
-
-  let msg = "There is new user. <br> Say Hello!";
-
-  let temp_tankID = "#" + $("body").attr("tankid");
-  fn_init_tank(temp_tankID);
-
-  let transport = {
-    message: msg,
-    color: text_color,
-    tankUser: tankId,
-    position:{
-      x:sss,
-      y:sss
-    }
-  };
-
-  transport = JSON.stringify(transport);
-  conn.send(transport);
-  console.log(msg);
-
-
-
-
-};
-
-function getTime() {
-  let actual = new Date();
-  let h = actual.getHours() >= 10 ? actual.getHours() : "0" + actual.getHours();
-  let m =
-    actual.getMinutes() >= 10 ? actual.getMinutes() : "0" + actual.getMinutes();
-  let ampm = h >= 12 ? "PM" : "AM";
-  let time = h + ":" + m + " " + ampm;
-  return time;
-}
-
-let days = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
-let months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-
-function getFullDate() {
-  let actual = new Date();
-  let h = actual.getHours() >= 10 ? actual.getHours() : "0" + actual.getHours();
-
-  let m =
-    actual.getMinutes() >= 10 ? actual.getMinutes() : "0" + actual.getMinutes();
-  let s =
-    actual.getSeconds() >= 10 ? actual.getSeconds() : "0" + actual.getSeconds();
-  let day = days[actual.getDay()];
-  let date = actual.getDate();
-
-  let month_num =
-    actual.getMonth() >= 10 ? actual.getMonth() : "0" + actual.getMonth();
-
-  let month = months[actual.getMonth()].slice(0, 3);
-  //   let ampm = h >= 12 ? "PM" : "AM";
-  let time = h + ":" + m + ":" + s;
-
-  $("#time").text(time);
-  $("#date_calendar").text(`${day}, ${month} ${date}`);
-}
-
-function citation() {
-  fetch("https://api.quotable.io/random")
-    .then(function (response) {
-      // response is a json string
-      return response.json(); // convert it to a pure JavaScript object
-    })
-    .then(function (data) {
-      //Process Your data
-      if (data) {
-        $("#citationAuthor").text(data.author);
-        $("#citationValue").text(data.content);
-      }
-    })
-    .catch(function (err) {
-      console.log(err);
-    });
-}
-
-function setTheme(theme) {
-  if (window.innerWidth >= 1000) {
-    fetch(`https://source.unsplash.com/random/1920×1280/?${theme}`).then(
-      function (response) {
-        $("body").attr("theme", theme);
-        $("#background").html(`<img src="${response.url}" alt="background" />`);
-      }
-    );
-  } else {
-    fetch(`https://source.unsplash.com/random/640×960/?${theme}`).then(
-      function (response) {
-        $("body").attr("theme", theme);
-        $("#background").html(`<img src="${response.url}" alt="background" />`);
-      }
-    );
-  }
-}
-
-function switch_theme() {
-  const theme = $("body").attr("theme");
-
-  $("#sun").toggleClass("active");
-  $("#moon").toggleClass("active");
-
-  if (theme === "night") {
-    setTheme("sunny");
-    console.log("actual theme :", "sunny");
-  } else if (theme === "sunny") {
-    setTheme("night");
-    console.log("actual theme:", "night");
-  }
-}
-
-
-$("#switch_theme").on("click", function (params) {
-  switch_theme();
-});
-
-setTheme("sunny");
-citation();
-getFullDate();
-setInterval(function () {
-  getFullDate();
-}, 1000);
-setInterval(function () {
-  citation();
-}, 20000);
-
-
-conn.onmessage = function (e) {
-  let time = getTime();
-
-  console.log(e.data);
-
-  let obj = JSON.parse(e.data);
-  console.log(obj);
-
-  if (obj.message === "iswritting") {
-    $("#alert_action").addClass("alert");
-
-    setTimeout(function () {
-      $("#alert_action").removeClass("alert");
-    }, 2500);
-  } else {
-    let message = `
-    <div class="item_msg receive">
-    <div class="item_msg_box"  style="background:${obj.color}">${obj.message}</div>
-    <div class="item_msg_box_time">${time}</div>
-    </div>
-    `;
-    document.querySelector("#message").pause();
-    document.querySelector("#message").play();
-    $("#message_root").append(message);
-    chat_container.scrollTop =
-    chat_container.scrollHeight - chat_container.clientHeight;
-
-
-    initTank(obj.tankUser,obj.pos);
-
-
   }
 };
 
+const ArrowUp = (elt) => {
+  let rotate = document.querySelector(elt).style.transform;
 
+  if (rotate != "rotate(0deg)") {
+    $(elt).css("transform", "rotate(0deg)");
+  } else {
+    let tempPos = 0;
+    let h = window.innerHeight - $(elt).height();
 
-$("#btn_send").on("click", function () {
-  let msg = $("#input_message").val().trim();
-  if (msg != "") {
-    let transport = {
-      message: msg,
-      color: text_color,
-    };
-
-    transport = JSON.stringify(transport);
-
-    conn.send(transport);
-    let time = getTime();
-    let message = `<div class="item_msg send">
-                  <div class="item_msg_box">${msg}</div>
-                  <div class="item_msg_box_time">${time}</div>
-                </div>
-      `;
-    document.querySelector("#send").pause();
-    document.querySelector("#send").play();
-    $("#message_root").append(message);
-
-    // $(".send .item_msg_box").css({
-    //     background:text_color
-    // });
-
-    chat_container.scrollTop =
-      chat_container.scrollHeight - chat_container.clientHeight;
-    $("#input_message").val("");
+    let position = $(elt).position();
+    tempPos = position.top - speed;
+    if (tempPos <= 0) {
+      $(elt).css("top", 0 + "px");
+    } else if (tempPos >= h) {
+      $(elt).css("top", h + "px");
+    } else {
+      $(elt).css("top", tempPos + "px");
+    }
   }
+};
+
+const ArrowRight = (elt) => {
+  let rotate = document.querySelector(elt).style.transform;
+
+  if (rotate != "rotate(90deg)") {
+    $(elt).css("transform", "rotate(90deg)");
+  } else {
+    let tempPos = 0;
+    let w = window.innerWidth - $(elt).width();
+
+    let position = $(elt).position();
+    tempPos = position.left + speed;
+    if (tempPos <= 0) {
+      $(elt).css("left", 0 + "px");
+    } else if (tempPos >= w) {
+      $(elt).css("left", w + "px");
+    } else {
+      $(elt).css("left", tempPos + "px");
+    }
+  }
+};
+
+const ArrowDown = (elt) => {
+  let rotate = document.querySelector(elt).style.transform;
+
+  if (rotate != "rotate(180deg)") {
+    $(elt).css("transform", "rotate(180deg)");
+  } else {
+    let tempPos = 0;
+    let h = window.innerHeight - $(elt).height();
+
+    let position = $(elt).position();
+    tempPos = position.top + speed;
+    if (tempPos <= 0) {
+      $(elt).css("top", 0 + "px");
+    } else if (tempPos >= h) {
+      $(elt).css("top", h + "px");
+    } else {
+      $(elt).css("top", tempPos + "px");
+    }
+  }
+};
+
+$("#ArrowLeft").on("mousedown", (e) => {
+  let elt = "#" + $("body").attr("tankid");
+  ArrowLeft(elt);
 });
 
-
-$("#input_message").on("input", function () {
-  $("#alert_action").addClass("alert");
-
-  setTimeout(function () {
-    $("#alert_action").removeClass("alert");
-
-    let transport = {
-      message: "iswritting",
-      color: "",
-    };
-
-    transport = JSON.stringify(transport);
-
-    conn.send(transport);
-  }, 2500);
+$("#ArrowRight").on("mousedown", () => {
+  let elt = "#" + $("body").attr("tankid");
+  ArrowRight(elt);
 });
+$("#ArrowUp").on("mousedown", () => {
+  let elt = "#" + $("body").attr("tankid");
+  ArrowUp(elt);
+});
+$("#ArrowDown").on("mousedown", () => {
+  let elt = "#" + $("body").attr("tankid");
+  ArrowDown(elt);
+});
+
+$("#fire").on("mousedown", () => {
+  let elt = "#" + $("body").attr("tankid");
+  shoot(elt);
+});
+
+const showArrow = (elt) => {
+  $(elt).addClass("active");
+
+  setTimeout(() => {
+    $(elt).removeClass("active");
+  }, 100);
+};
+
+let keys = {}; // You could also use an array
+onkeydown = onkeyup = (e) => {
+  e = e || event; // to deal with IE
+  keys[e.code] = e.type == "keydown";
+  let elt = "#" + $("body").attr("tankid");
+  // console.log("keys", keys);
+  console.log("Key : ", e.code);
+  if (
+    keys["ArrowLeft"] ||
+    keys["ArrowUp"] ||
+    keys["ArrowRight"] ||
+    keys["ArrowDown"]
+  ) {
+    // console.log("elt", elt);
+    console.log("Key : ", e.code);
+
+    switch (e.code) {
+      case "ArrowLeft":
+        ArrowLeft(elt);
+        showArrow("#ArrowLeft");
+        break;
+      case "ArrowUp":
+        ArrowUp(elt);
+        showArrow("#ArrowUp");
+        break;
+      case "ArrowRight":
+        ArrowRight(elt);
+        showArrow("#ArrowRight");
+        break;
+      case "ArrowDown":
+        ArrowDown(elt);
+        showArrow("#ArrowDown");
+        break;
+      case "Numpad1":
+        shoot(elt);
+        console.log("Tirer tirer -------->");
+        break;
+    }
+  } else if (
+    (keys["ArrowLeft"] ||
+      keys["ArrowUp"] ||
+      keys["ArrowRight"] ||
+      keys["ArrowDown"]) &&
+    keys["Numpad1"]
+  ) {
+    switch (e.code) {
+      case "ArrowLeft":
+        ArrowLeft(elt);
+        shoot(elt);
+
+        console.log("Tirer tirer -------->");
+        break;
+      case "ArrowUp":
+        ArrowUp(elt);
+        shoot(elt);
+        console.log("Tirer tirer -------->");
+        break;
+      case "ArrowRight":
+        ArrowRight(elt);
+        shoot(elt);
+        console.log("Tirer tirer -------->");
+        break;
+      case "ArrowDown":
+        ArrowDown(elt);
+        shoot(elt);
+        console.log("Tirer tirer -------->");
+        break;
+    }
+  }
+  if (keys["Numpad1"] && e.code == "Numpad1") {
+    // console.log("Key : ", e.code);
+    shoot(elt);
+    // console.log("Tirer tirer -------->");
+  }
+};

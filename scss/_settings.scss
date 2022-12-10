@@ -709,7 +709,7 @@ a {
   background-color: #194056;
   // background-size: cover;
   z-index: 999999999;
-
+  user-select: none;
   .tank {
     position: fixed;
     display: flex;
@@ -735,20 +735,27 @@ a {
   border-radius: 50%;
   background: rgb(255, 255, 255);
 }
-
+$touch_radius:12px;
 .padtouch {
   position: fixed;
   bottom: 3%;
   left: 50%;
-  transform: translate(-50%);
+  transform: translate(calc(-50% - 60px));
   z-index: 1000;
   width: 300px;
   user-select: none;
+
+  @media all and (max-width:500px){
+    width: 100%;
+    transform:  translate(calc(-50% - 60px)) scale(0.9);
+  }
+
   .contain_touch {
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
+
     .touch {
       display: flex;
       justify-content: center;
@@ -761,6 +768,8 @@ a {
       font-size: 1.5em;
       opacity: 0.1;
       transition: 0.3;
+      border-radius: $touch_radius;
+
       &:active {
         opacity: 1;
         transition: 0.3;
@@ -771,6 +780,32 @@ a {
       opacity: 1;
       transition: 0.3;
     }
+  }
 
+  .fire {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+    width: 60px;
+    margin: 3px;
+    background: white;
+    color: #282a37;
+    font-size: 1em;
+    opacity: 0.1;
+    font-weight: 800;
+    border-radius: $touch_radius;
+    transition: 0.3;
+    content: attr("fire");
+    position: absolute;
+    right: 0px;
+    transform: translateX(50%);
+    bottom: 0px;
+    &:active {
+      opacity: 1;
+      transition: 0.3;
+    }
+   
   }
 }

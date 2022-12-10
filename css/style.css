@@ -823,6 +823,10 @@ a :hover {
           box-sizing: border-box;
   background-color: #194056;
   z-index: 999999999;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
 }
 .gamer_verser .tank {
   position: fixed;
@@ -857,14 +861,21 @@ a :hover {
   position: fixed;
   bottom: 3%;
   left: 50%;
-  -webkit-transform: translate(-50%);
-          transform: translate(-50%);
+  -webkit-transform: translate(calc(-50% - 60px));
+          transform: translate(calc(-50% - 60px));
   z-index: 1000;
   width: 300px;
   -webkit-user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;
+}
+@media all and (max-width: 500px) {
+  .padtouch {
+    width: 100%;
+    -webkit-transform: translate(calc(-50% - 60px)) scale(0.9);
+            transform: translate(calc(-50% - 60px)) scale(0.9);
+  }
 }
 .padtouch .contain_touch {
   display: -webkit-box;
@@ -897,6 +908,7 @@ a :hover {
   opacity: 0.1;
   -webkit-transition: 0.3;
   transition: 0.3;
+  border-radius: 12px;
 }
 .padtouch .contain_touch .touch:active {
   opacity: 1;
@@ -904,6 +916,40 @@ a :hover {
   transition: 0.3;
 }
 .padtouch .contain_touch .active {
+  opacity: 1;
+  -webkit-transition: 0.3;
+  transition: 0.3;
+}
+.padtouch .fire {
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  height: 60px;
+  width: 60px;
+  margin: 3px;
+  background: white;
+  color: #282a37;
+  font-size: 1em;
+  opacity: 0.1;
+  font-weight: 800;
+  border-radius: 12px;
+  -webkit-transition: 0.3;
+  transition: 0.3;
+  content: attr("fire");
+  position: absolute;
+  right: 0px;
+  -webkit-transform: translateX(50%);
+          transform: translateX(50%);
+  bottom: 0px;
+}
+.padtouch .fire:active {
   opacity: 1;
   -webkit-transition: 0.3;
   transition: 0.3;
