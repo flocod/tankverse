@@ -718,7 +718,7 @@ a {
     align-items: center;
     width: 60px;
     height: 60px;
-
+    pointer-events: none;
     // transition: transform 0.3s ease;
     img {
       width: 100%;
