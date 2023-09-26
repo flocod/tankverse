@@ -954,3 +954,9 @@ a :hover {
   -webkit-transition: 0.3;
   transition: 0.3;
 }
+
+.square {
+  width: 100px;
+  height: 100px;
+  position: absolute;
+}

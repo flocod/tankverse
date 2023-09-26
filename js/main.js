@@ -1,56 +1,89 @@
-
 let tankId = "tank" + Math.floor(Math.random() * 100000);
 document.querySelector(".body").setAttribute("tankid", tankId);
 
 let speed = 35;
 let gunSpeed = 1020;
 
-let enemies= 10; 
-let ennemies_tank= `<img src="images/tank.svg" alt="">`
+// Tableau contenant le nombre de répétitions automatique possibles d'une action
+const TabRepeatTime = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+const redEnnemie = `<img src="images/redennemi.svg" alt="">`;
+const yellowEnnemie = `<img src="images/yellowennemi.svg" alt="">`;
+
+let enemies = 10;
+enemiesSPEED = "1000";
+let ennemies_tank = `<img src="images/tank.svg" alt="">`;
 let rotatedeg = [0, 90, -90, 180];
 
 const animateTo = (elt, params) => {
   $(elt).css(params);
 };
 
-
-$("#fire").trigger('load');
+$("#fire").trigger("load");
 // write methods for playing and stopping
 
 function play_audio(task) {
-      if(task == 'play'){
-           $("#fired").trigger('play');
-      }
-      if(task == 'stop'){
-           $("#fired").trigger('pause');
-           $("#fired").prop("currentTime",0);
-      }
- }
+  if (task == "play") {
+    $("#fired").trigger("play");
+  }
+  if (task == "stop") {
+    $("#fired").trigger("pause");
+    $("#fired").prop("currentTime", 0);
+  }
+}
 
-
-const fn_init_tank = (temp_tankID) => {
+const fn_init_tank = (type = "actor") => {
   //tank id with #
   let tank = document.createElement("div");
-  tank.setAttribute("id", $("body").attr("tankid"));
-  tank.setAttribute("class", "tank");
-  tank.innerHTML = `<img src="images/tank.svg" alt="">`;
+  let randomID;
+  if (type === "actor") {
+    tank.setAttribute("id", $("body").attr("tankid"));
+    tank.setAttribute("class", "tank");
+    tank.innerHTML = `<img src="images/tank.svg" alt="">`;
+  } else if (type === "ennemie") {
+    randomID = "tank" + Math.floor(Math.random() * 100000);
+    tank.setAttribute("id", randomID);
+    tank.setAttribute("class", "tank ennemie");
+
+    const randomNumber = Math.random();
+    const result = randomNumber < 0.5 ? 0 : 1;
+    if (result) {
+      tank.innerHTML = redEnnemie;
+    } else {
+      tank.innerHTML = yellowEnnemie;
+    }
+  }
+
   document.querySelector(".body .gamer_verser").appendChild(tank);
   console.log("tank", tank);
-  let initTemp = makeNewPosition(temp_tankID);
-  animateTo(
-    temp_tankID,
-    {
-      top: initTemp[0],
-      left: initTemp[1],
-      transform: `rotate(${initTemp[2]}deg)`,
-    },
-    300
-  );
+
+  if (type === "actor") {
+    let initTemp = makeNewPosition("#" + $("body").attr("tankid"));
+    animateTo(
+      "#" + $("body").attr("tankid"),
+      {
+        top: initTemp[0],
+        left: initTemp[1],
+        transform: `rotate(${initTemp[2]}deg)`,
+      },
+      300
+    );
+  } else if (type === "ennemie") {
+    let initTemp = makeNewPosition("#" + randomID);
+    animateTo(
+      "#" + randomID,
+      {
+        top: initTemp[0],
+        left: initTemp[1],
+        transform: `rotate(${initTemp[2]}deg)`,
+      },
+      300
+    );
+  }
 };
 
-
 let temp_tankID = "#" + $("body").attr("tankid");
-fn_init_tank(temp_tankID);
+fn_init_tank();
 
 function shuffle(array) {
   let currentIndex = array.length,
@@ -126,7 +159,7 @@ const shoot = (elt) => {
   play_audio("stop");
 
   play_audio("play");
-  
+
   document.querySelector(".body .gamer_verser").appendChild(bullet);
 
   // console.log("bullet", bullet);
@@ -386,3 +419,86 @@ onkeydown = onkeyup = (e) => {
     // console.log("Tirer tirer -------->");
   }
 };
+
+function getRandomColor() {
+  const letters = "0123456789ABCDEF";
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+function waitTime(fn, ...args) {
+  setTimeout(function () {
+    fn(...args); // Appel de la fonction avec les arguments
+  }, 500);
+}
+
+function repeatAction(action, n, interval, ...args) {
+  let count = 0;
+  function execute() {
+    if (count < n) {
+      action(...args);
+      count++;
+      setTimeout(execute, interval);
+    }
+  }
+
+  execute();
+}
+
+// Créez un tableau pour stocker les éléments
+// const elementsToAnimate = [];
+
+// Ajoutez les éléments à ce tableau
+for (let i = 0; i < enemies; i++) {
+  fn_init_tank("ennemie");
+}
+
+// Fonction pour générer un nombre aléatoire entre 0 et la longueur du tableau
+function getRandomIndex(arr) {
+  return Math.floor(Math.random() * arr.length);
+}
+
+// Fonction pour animer aléatoirement les éléments
+function animateElementsRandomly() {
+  let elementsToAnimate = document.querySelectorAll(".ennemie");
+  elementsToAnimate.forEach((element) => {
+    const randomDelay = Math.random() * 5000; // Délai aléatoire jusqu'à 5 secondes
+    setTimeout(() => {
+      const randomAction = Math.floor(Math.random() * 5); // Choix aléatoire d'une action
+      const elt = "#" + element.getAttribute("id");
+      console.log(" element.getAttribute(id);", element.getAttribute("id"));
+
+      const randomActionRepeat = TabRepeatTime[getRandomIndex(TabRepeatTime)];
+
+      switch (randomAction) {
+        case 0:
+          shoot(elt);
+          break;
+        case 1:
+          repeatAction(ArrowDown, randomActionRepeat, enemiesSPEED, elt);
+          break;
+        case 2:
+          repeatAction(ArrowUp, randomActionRepeat, enemiesSPEED, elt);
+          break;
+        case 3:
+          repeatAction(ArrowRight, randomActionRepeat, enemiesSPEED, elt);
+          break;
+        case 4:
+          repeatAction(ArrowLeft, randomActionRepeat, enemiesSPEED, elt);
+          break;
+      }
+    }, randomDelay);
+  });
+}
+
+// Appeler la fonction pour animer aléatoirement les éléments
+animateElementsRandomly();
+
+setTimeout(() => {
+  setInterval(() => {
+    animateElementsRandomly();
+  }, 2000);
+}, 5000);
