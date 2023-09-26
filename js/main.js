@@ -11,7 +11,7 @@ const redEnnemie = `<img src="images/redennemi.svg" alt="">`;
 const yellowEnnemie = `<img src="images/yellowennemi.svg" alt="">`;
 
 let enemies = 10;
-if(window.innerWidth < 1000){
+if (window.innerWidth < 1000) {
   enemies = 6; // On enlève des ennemis pour les petits écrans
 }
 
@@ -61,7 +61,6 @@ const fn_init_tank = (type = "actor") => {
   }
 
   document.querySelector(".body .gamer_verser").appendChild(tank);
-
 
   if (type === "actor") {
     let initTemp = makeNewPosition("#" + $("body").attr("tankid"));
@@ -131,7 +130,6 @@ const initTank = (tankID, position) => {
   tank.innerHTML = `<img src="images/tank.svg" alt="">`;
   document.querySelector(".body .gamer_verser").appendChild(tank);
 
-
   animateTo(
     tankID,
     {
@@ -154,11 +152,18 @@ const shoot = async (elt) => {
   let target_bullet = "bul" + Math.floor(Math.random() * 100000);
 
   let bullet = document.createElement("div");
-  console.log("elt",elt);
+  console.log("elt", elt);
   bullet.setAttribute("id", target_bullet);
   bullet.setAttribute("class", `bullet`);
   bullet.setAttribute("for", `${elt}`);
-  bullet.setAttribute("type", `${Array.from(document.querySelector(elt).classList).includes('ennemie') ? 'ennemie' : 'actor'}`);
+  bullet.setAttribute(
+    "type",
+    `${
+      Array.from(document.querySelector(elt).classList).includes("ennemie")
+        ? "ennemie"
+        : "actor"
+    }`
+  );
   bullet.setAttribute(
     "style",
     `left:${centerX}px;top:${centerY}px; display:block;`
@@ -168,10 +173,9 @@ const shoot = async (elt) => {
 
   // play_audio("play");
 
-await playShoot();
+  await playShoot();
 
   document.querySelector(".body .gamer_verser").appendChild(bullet);
-
 
   let rotate = document.querySelector(elt).style.transform;
 
@@ -185,9 +189,11 @@ await playShoot();
         {
           left: "-200%",
         },
-        gunSpeed
+        {
+          duration: gunSpeed,
+          easing: "linear",
+        }
       );
-  
 
       break;
 
@@ -196,9 +202,11 @@ await playShoot();
         {
           top: "-200%",
         },
-        gunSpeed
+        {
+          duration: gunSpeed,
+          easing: "linear",
+        }
       );
-  
 
       break;
     case "rotate(90deg)":
@@ -206,9 +214,11 @@ await playShoot();
         {
           left: "200%",
         },
-        gunSpeed
+        {
+          duration: gunSpeed,
+          easing: "linear",
+        }
       );
-   
 
       break;
     case "rotate(180deg)":
@@ -216,9 +226,11 @@ await playShoot();
         {
           top: "200%",
         },
-        gunSpeed
+        {
+          duration: gunSpeed,
+          easing: "linear",
+        }
       );
-   
 
       break;
 
@@ -226,6 +238,12 @@ await playShoot();
       break;
   }
 };
+
+function vibreAction() {
+  if ("vibrate" in navigator) {
+    navigator.vibrate([1]);
+  }
+}
 
 const ArrowLeft = (elt) => {
   let rotate = document.querySelector(elt).style.transform;
@@ -323,24 +341,30 @@ const ArrowDown = (elt) => {
 
 $("#ArrowLeft").on("mousedown", (e) => {
   let elt = "#" + $("body").attr("tankid");
+
+  vibreAction();
   ArrowLeft(elt);
 });
 
 $("#ArrowRight").on("mousedown", () => {
   let elt = "#" + $("body").attr("tankid");
+  vibreAction();
   ArrowRight(elt);
 });
 $("#ArrowUp").on("mousedown", () => {
   let elt = "#" + $("body").attr("tankid");
+  vibreAction();
   ArrowUp(elt);
 });
 $("#ArrowDown").on("mousedown", () => {
   let elt = "#" + $("body").attr("tankid");
+  vibreAction();
   ArrowDown(elt);
 });
 
 $("#fire").on("mousedown", () => {
   let elt = "#" + $("body").attr("tankid");
+  vibreAction();
   shoot(elt);
 });
 
@@ -358,16 +382,12 @@ onkeydown = onkeyup = (e) => {
   keys[e.code] = e.type == "keydown";
   let elt = "#" + $("body").attr("tankid");
 
-
   if (
     keys["ArrowLeft"] ||
     keys["ArrowUp"] ||
     keys["ArrowRight"] ||
     keys["ArrowDown"]
   ) {
-   
-  
-
     switch (e.code) {
       case "ArrowLeft":
         ArrowLeft(elt);
@@ -387,7 +407,7 @@ onkeydown = onkeyup = (e) => {
         break;
       case "Numpad1":
         shoot(elt);
-      
+
         break;
     }
   } else if (
@@ -402,17 +422,16 @@ onkeydown = onkeyup = (e) => {
         ArrowLeft(elt);
         shoot(elt);
 
-        
         break;
       case "ArrowUp":
         ArrowUp(elt);
         shoot(elt);
-    
+
         break;
       case "ArrowRight":
         ArrowRight(elt);
         shoot(elt);
-     
+
         break;
       case "ArrowDown":
         ArrowDown(elt);
@@ -457,33 +476,31 @@ function repeatAction(action, n, interval, ...args) {
   execute();
 }
 
-
-async function playShoot(){
-       
+async function playShoot() {
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
   const audioBufferSource = audioContext.createBufferSource();
-  
-  fetch('../sons/fire.mp3')
-    .then(response => response.arrayBuffer())
-    .then(data => audioContext.decodeAudioData(data))
-    .then(buffer => {
+
+  fetch("../sons/fire.mp3")
+    .then((response) => response.arrayBuffer())
+    .then((data) => audioContext.decodeAudioData(data))
+    .then((buffer) => {
       audioBufferSource.buffer = buffer;
       audioBufferSource.connect(audioContext.destination);
       audioBufferSource.start();
     })
-    .catch(error => {
-      console.error('Erreur lors du chargement et de la lecture du son :', error);
-    });   
- 
+    .catch((error) => {
+      console.error(
+        "Erreur lors du chargement et de la lecture du son :",
+        error
+      );
+    });
 }
-
-
 
 // Créez un tableau pour stocker les éléments
 // const elementsToAnimate = [];
 
 // Ajoutez les éléments à ce tableau
-function generateEnnemie(){
+function generateEnnemie() {
   for (let i = 0; i < enemies; i++) {
     fn_init_tank("ennemie");
   }
@@ -495,7 +512,6 @@ generateEnnemie();
 function getRandomIndex(arr) {
   return Math.floor(Math.random() * arr.length);
 }
-
 
 // Fonction pour vérifier si les éléments se chevauchent
 function elementsOverlap(element1, element2) {
@@ -510,30 +526,37 @@ function elementsOverlap(element1, element2) {
 // Fonction à exécuter lorsque les éléments se chevauchent
 // Fonction à exécuter lorsque les éléments se chevauchent
 function onOverlap() {
-  const bulletElements = document.querySelectorAll('.bullet'); // Sélectionnez tous les éléments .bullet
-  const tankElements = document.querySelectorAll('.tank'); // Sélectionnez tous les éléments .bullet
+  const bulletElements = document.querySelectorAll(".bullet"); // Sélectionnez tous les éléments .bullet
+  const tankElements = document.querySelectorAll(".tank"); // Sélectionnez tous les éléments .bullet
 
   bulletElements.forEach((bulletElement) => {
-
     tankElements.forEach((tankElement) => {
+      if (
+        elementsOverlap(
+          tankElement.getBoundingClientRect(),
+          bulletElement.getBoundingClientRect()
+        )
+      ) {
+        console.log(
+          `la balle ${bulletElement.getAttribute("type")} a touché ${
+            tankElement.classList
+          }`
+        );
 
-      if (elementsOverlap(tankElement.getBoundingClientRect(), bulletElement.getBoundingClientRect())) {
-        console.log(`la balle ${bulletElement.getAttribute("type")} a touché ${tankElement.classList}`);
-
-        const test =`la balle ${bulletElement.getAttribute("type")} a touché ${tankElement.classList}`;
-
+        const test = `la balle ${bulletElement.getAttribute("type")} a touché ${
+          tankElement.classList
+        }`;
 
         switch (test) {
           case "la balle ennemie a touché tank":
             tankElement.remove();
             copyEnemiesNumber--;
 
-
             break;
           case "la balle actor a touché tank ennemie":
             tankElement.remove();
             break;
-        
+
           default:
             break;
         }
@@ -541,14 +564,10 @@ function onOverlap() {
         // Votre code à exécuter lorsque les éléments se chevauchent
       }
     });
-
-
   });
 
   requestAnimationFrame(onOverlap);
 }
-
-
 
 // Fonction pour animer aléatoirement les éléments
 function animateElementsRandomly() {
@@ -558,7 +577,6 @@ function animateElementsRandomly() {
     setTimeout(() => {
       const randomAction = Math.floor(Math.random() * 5); // Choix aléatoire d'une action
       const elt = "#" + element.getAttribute("id");
-  
 
       const randomActionRepeat = TabRepeatTime[getRandomIndex(TabRepeatTime)];
 
@@ -592,14 +610,11 @@ setTimeout(() => {
   }, 2000);
 }, 5000);
 
-
 requestAnimationFrame(onOverlap);
 
-
-
 setInterval(() => {
-  if(document.querySelectorAll('.ennemie').length ==0){
-    copyEnemiesNumber = enemies
+  if (document.querySelectorAll(".ennemie").length == 0) {
+    copyEnemiesNumber = enemies;
     generateEnnemie();
   }
 }, 3000);
