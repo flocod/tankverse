@@ -3,7 +3,7 @@ document.querySelector(".body").setAttribute("tankid", tankId);
 
 let speed = 35;
 let gunSpeed = 2600;
-
+let score = 0;
 // Tableau contenant le nombre de répétitions automatique possibles d'une action
 const TabRepeatTime = [4, 5, 6, 7, 8, 9];
 
@@ -37,6 +37,18 @@ function play_audio(task) {
     $("#fired").prop("currentTime", 0);
   }
 }
+
+
+
+function formatScore(score, length) {
+  let scoreStr = score.toString();
+  const zerosToAdd = Math.max(length - scoreStr.length, 0);
+  const formattedScore = '0'.repeat(zerosToAdd) + scoreStr;
+  return formattedScore;
+}
+
+
+
 
 const fn_init_tank = (type = "actor") => {
   //tank id with #
@@ -550,11 +562,15 @@ function onOverlap() {
         switch (test) {
           case "la balle ennemie a touché tank":
             tankElement.remove();
-            copyEnemiesNumber--;
+           
 
             break;
           case "la balle actor a touché tank ennemie":
             tankElement.remove();
+            copyEnemiesNumber--;
+
+            score++ 
+             document.querySelector('.score span').textContent=formatScore(score, 5);
             break;
 
           default:

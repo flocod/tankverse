@@ -2,6 +2,7 @@
 $theme: #194056;
 //polices
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
 /**
 Thin 100
 Extra-light 200
@@ -26,7 +27,7 @@ Black 900
   overflow-x: hidden;
   background: var(--theme);
   color: var(--text);
-  font-family: "Poppins", sans-serif;
+  font-family: "Anton", sans-serif;
   font-weight: 400;
 }
 
@@ -816,4 +817,14 @@ $touch_radius:12px;
   width: 100px;
   height: 100px;
   position: absolute;
+}
+
+.score{
+  position: fixed;
+  right: 2%;
+  line-height: 1em;
+  top: 2%;
+  font-size: 1.5em;
+  z-index: 10;
+
 }
