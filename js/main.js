@@ -169,11 +169,11 @@ const shoot = async (elt) => {
     `left:${centerX}px;top:${centerY}px; display:block;`
   );
 
-  // play_audio("stop");
+  play_audio("stop");
 
-  // play_audio("play");
+  play_audio("play");
 
-  await playShoot();
+  // await playShoot();
 
   document.querySelector(".body .gamer_verser").appendChild(bullet);
 
