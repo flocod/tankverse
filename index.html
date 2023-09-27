@@ -7,29 +7,32 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tankverse | Tank war - The Battle is now() </title>
+    <title>Tankverse | Tank war - The Battle is now()</title>
     <!-- Primary Meta Tags -->
     <meta name="title" content="Tankverse | Tank war - The Battle is now()" />
-    <meta
-      name="description"
-      content="Tank war - The Battle is now()."
-    />
+    <meta name="description" content="Tank war - The Battle is now()." />
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://flocod.github.io/tankverse/" />
-    <meta property="og:title" content="Tankverse | Tank war - The Battle is now()" />
     <meta
-      property="og:description"
-      content="Tank war - The Battle is now()."
+      property="og:title"
+      content="Tankverse | Tank war - The Battle is now()"
     />
+    <meta property="og:description" content="Tank war - The Battle is now()." />
     <meta
       property="og:image"
       content="https://flocod.github.io/tankverse/images/preview.jpg?v=2"
     />
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://flocod.github.io/tankverse/" />
-    <meta property="twitter:title" content="Tankverse | Tank war - The Battle is now()" />
+    <meta
+      property="twitter:url"
+      content="https://flocod.github.io/tankverse/"
+    />
+    <meta
+      property="twitter:title"
+      content="Tankverse | Tank war - The Battle is now()"
+    />
     <meta
       property="twitter:description"
       content="Tank war - The Battle is now()."
@@ -44,15 +47,12 @@
       href="https://flocode.github.io/anyome/images/preview.jpg"
       type="image/x-icon"
     />
-    <link rel="stylesheet" href="css/style.css?v=12" />
+    <link rel="stylesheet" href="css/style.css?v=13" />
   </head>
   <body theme="sunny" class="body theme" text_color="">
-
-
     <div class="gamer_verser">
+      <div class="score">Score : <span>00000000</span></div>
 
-      <div class="score"> Score : <span>000000</span> </div>
-      
       <!-- <div id="tank1" class="tank">
         <img src="images/tank.svg" alt="">
       </div> -->
@@ -60,26 +60,50 @@
       <!-- <div class="bullet"></div> -->
 
       <div class="padtouch">
-        <div class="contain_touch" >
+        <div class="contain_touch">
           <div id="ArrowUp" class="touch">▲</div>
         </div>
-        <div class="contain_touch " fire="">
+        <div class="contain_touch" fire="">
           <div id="ArrowLeft" class="touch">◀</div>
           <div id="ArrowDown" class="touch">▼</div>
           <div id="ArrowRight" class="touch">▶</div>
 
-          <div id="fire" class="fire"> Num1</div>
+          <div id="fire" class="fire">Num1</div>
         </div>
       </div>
+    </div>
 
+    <div id="gameOver_interface" class="game_interface">
+      <div class="title">Game Over</div>
+
+      <div class="btn_contain">
+        <button  type="button" class="btn_item share_game">Share with your Friends</button>
+        <button id="restart" type="button" class="btn_item">Restart the game</button>
+
+      </div>
+    </div>
+
+    <div id="start_interface" class="game_interface game_interface_active">
+      <div class="title">Tankverse</div>
+
+      <div class="btn_contain">
+ 
+        <button type="button" class="btn_item share_game">Share with your Friends</button>
+        <button id="start" type="button" class="btn_item">Start the game</button>
+      </div>
     </div>
 
     <audio
       id="fired"
       onload="this.pause();"
-     
       style="visibility: hidden"
       src="sons/fire.mp3"
+    ></audio>
+    <audio
+      id="shoot"
+      onload="this.pause();"
+      style="visibility: hidden"
+      src="sons/shoot.aac"
     ></audio>
     <!-- <audio
       id="message"
@@ -88,14 +112,11 @@
       src="sons/message.mp3"
     ></audio> -->
 
-    
-
     <script
       src="https://code.jquery.com/jquery-3.6.0.min.js"
       integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
       crossorigin="anonymous"
     ></script>
-    <script type="text/javascript" src="js/main.js?v=16"></script>
-
+    <script type="text/javascript" src="js/main.js?v=17"></script>
   </body>
 </html>

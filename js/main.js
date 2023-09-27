@@ -1,9 +1,26 @@
 let tankId = "tank" + Math.floor(Math.random() * 100000);
 document.querySelector(".body").setAttribute("tankid", tankId);
 
-let speed = 35;
+let speed = 6;
+let actorClone="";
+let actorSpeed = 6;
+let ennemieSpeed = 40;
 let gunSpeed = 2600;
+let actorGunSpeed = 2000;
+let ennemieGunSpeed = 4700;
 let score = 0;
+
+var rightPressed = false;
+var leftPressed = false;
+var upPressed = false;
+var downPressed = false;
+var shootPressed = false;
+
+
+var x = window.innerWidth/2;
+var y = window.innerHeight-30;
+var angle = 0;
+
 // Tableau contenant le nombre de répétitions automatique possibles d'une action
 const TabRepeatTime = [4, 5, 6, 7, 8, 9];
 
@@ -13,6 +30,7 @@ const yellowEnnemie = `<img src="images/yellowennemi.svg" alt="">`;
 let enemies = 10;
 if (window.innerWidth < 1000) {
   enemies = 6; // On enlève des ennemis pour les petits écrans
+  actorSpeed = 50;
 }
 
 let copyEnemiesNumber = enemies;
@@ -27,7 +45,6 @@ const animateTo = (elt, params) => {
 
 $("#fire").trigger("load");
 // write methods for playing and stopping
-
 function play_audio(task) {
   if (task == "play") {
     $("#fired").trigger("play");
@@ -37,18 +54,22 @@ function play_audio(task) {
     $("#fired").prop("currentTime", 0);
   }
 }
-
-
+function play_audio2(task) {
+  if (task == "play") {
+    $("#shoot").trigger("play");
+  }
+  if (task == "stop") {
+    $("#shoot").trigger("pause");
+    $("#shoot").prop("currentTime", 0);
+  }
+}
 
 function formatScore(score, length) {
   let scoreStr = score.toString();
   const zerosToAdd = Math.max(length - scoreStr.length, 0);
-  const formattedScore = '0'.repeat(zerosToAdd) + scoreStr;
+  const formattedScore = "0".repeat(zerosToAdd) + scoreStr;
   return formattedScore;
 }
-
-
-
 
 const fn_init_tank = (type = "actor") => {
   //tank id with #
@@ -74,7 +95,10 @@ const fn_init_tank = (type = "actor") => {
 
   document.querySelector(".body .gamer_verser").appendChild(tank);
 
+
   if (type === "actor") {
+    console.log("actorClone",actorClone);
+    actorClone = tank;
     let initTemp = makeNewPosition("#" + $("body").attr("tankid"));
     animateTo(
       "#" + $("body").attr("tankid"),
@@ -99,8 +123,17 @@ const fn_init_tank = (type = "actor") => {
   }
 };
 
-let temp_tankID = "#" + $("body").attr("tankid");
-fn_init_tank();
+
+
+function swapSpeed(elt) {
+  if (Array.from(document.querySelector(elt).classList).includes("ennemie")) {
+    speed = ennemieSpeed;
+    gunSpeed = ennemieGunSpeed;
+  } else {
+    speed = actorSpeed;
+    gunSpeed = actorGunSpeed;
+  }
+}
 
 function shuffle(array) {
   let currentIndex = array.length,
@@ -154,6 +187,8 @@ const initTank = (tankID, position) => {
 };
 
 const shoot = async (elt) => {
+  swapSpeed(elt);
+
   let offset = $(elt).offset();
   let width = $(elt).width();
   let height = $(elt).height();
@@ -164,7 +199,7 @@ const shoot = async (elt) => {
   let target_bullet = "bul" + Math.floor(Math.random() * 100000);
 
   let bullet = document.createElement("div");
-  console.log("elt", elt);
+
   bullet.setAttribute("id", target_bullet);
   bullet.setAttribute("class", `bullet`);
   bullet.setAttribute("for", `${elt}`);
@@ -181,9 +216,15 @@ const shoot = async (elt) => {
     `left:${centerX}px;top:${centerY}px; display:block;`
   );
 
-  play_audio("stop");
+  if (Array.from(document.querySelector(elt).classList).includes("ennemie")) {
+    play_audio2("stop");
 
-  play_audio("play");
+    play_audio2("play");
+  } else {
+    play_audio("stop");
+
+    play_audio("play");
+  }
 
   // await playShoot();
 
@@ -259,7 +300,7 @@ function vibreAction() {
 
 const ArrowLeft = (elt) => {
   let rotate = document.querySelector(elt).style.transform;
-
+  swapSpeed(elt);
   if (rotate != "rotate(-90deg)") {
     $(elt).css("transform", "rotate(-90deg)");
   } else {
@@ -290,7 +331,7 @@ const ArrowLeft = (elt) => {
 
 const ArrowUp = (elt) => {
   let rotate = document.querySelector(elt).style.transform;
-
+  swapSpeed(elt);
   if (rotate != "rotate(0deg)") {
     $(elt).css("transform", "rotate(0deg)");
   } else {
@@ -312,6 +353,8 @@ const ArrowUp = (elt) => {
 const ArrowRight = (elt) => {
   let rotate = document.querySelector(elt).style.transform;
 
+  swapSpeed(elt);
+
   if (rotate != "rotate(90deg)") {
     $(elt).css("transform", "rotate(90deg)");
   } else {
@@ -332,7 +375,7 @@ const ArrowRight = (elt) => {
 
 const ArrowDown = (elt) => {
   let rotate = document.querySelector(elt).style.transform;
-
+  swapSpeed(elt);
   if (rotate != "rotate(180deg)") {
     $(elt).css("transform", "rotate(180deg)");
   } else {
@@ -388,77 +431,89 @@ const showArrow = (elt) => {
   }, 100);
 };
 
-let keys = {}; // You could also use an array
-onkeydown = onkeyup = (e) => {
-  e = e || event; // to deal with IE
-  keys[e.code] = e.type == "keydown";
-  let elt = "#" + $("body").attr("tankid");
 
-  if (
-    keys["ArrowLeft"] ||
-    keys["ArrowUp"] ||
-    keys["ArrowRight"] ||
-    keys["ArrowDown"]
-  ) {
-    switch (e.code) {
-      case "ArrowLeft":
-        ArrowLeft(elt);
-        showArrow("#ArrowLeft");
-        break;
-      case "ArrowUp":
-        ArrowUp(elt);
-        showArrow("#ArrowUp");
-        break;
-      case "ArrowRight":
-        ArrowRight(elt);
-        showArrow("#ArrowRight");
-        break;
-      case "ArrowDown":
-        ArrowDown(elt);
-        showArrow("#ArrowDown");
-        break;
-      case "Numpad1":
-        shoot(elt);
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+// document.addEventListener("mousemove", mouseMoveHandler, false);
+// document.addEventListener("mousedown", mouseDownHandler, false);
+// document.addEventListener("mouseup", mouseUpHandler, false);
 
-        break;
-    }
-  } else if (
-    (keys["ArrowLeft"] ||
-      keys["ArrowUp"] ||
-      keys["ArrowRight"] ||
-      keys["ArrowDown"]) &&
-    keys["Numpad1"]
-  ) {
-    switch (e.code) {
-      case "ArrowLeft":
-        ArrowLeft(elt);
-        shoot(elt);
+function keyDownHandler(event) {
+  if (event.keyCode == 39) {
+    rightPressed = true;
 
-        break;
-      case "ArrowUp":
-        ArrowUp(elt);
-        shoot(elt);
-
-        break;
-      case "ArrowRight":
-        ArrowRight(elt);
-        shoot(elt);
-
-        break;
-      case "ArrowDown":
-        ArrowDown(elt);
-        shoot(elt);
-
-        break;
-    }
+  } else if (event.keyCode == 37) {
+    leftPressed = true;
+  } else if (event.keyCode == 38) {
+    upPressed = true;
+  } else if (event.keyCode == 40) {
+    downPressed = true;
+  } else if (event.code === "Numpad1") {
+    shootPressed = true;
   }
-  if (keys["Numpad1"] && e.code == "Numpad1") {
-    // console.log("Key : ", e.code);
+}
+
+function keyUpHandler(event) {
+  if (event.keyCode == 39) {
+    rightPressed = false;
+  } else if (event.keyCode == 37) {
+    leftPressed = false;
+  } else if (event.keyCode == 38) {
+    upPressed = false;
+  } else if (event.keyCode == 40) {
+    downPressed = false;
+  } else if (event.code === "Numpad1") {
+    shootPressed = false;
+  }
+}
+
+function mouseMoveHandler(event) {
+  var rect = document.getElementById(document.querySelector('body').getAttribute("tankid")).getBoundingClientRect();
+  var mouseX = event.clientX - rect.left;
+  var mouseY = event.clientY - rect.top;
+
+  angle = Math.atan2(mouseY - y, mouseX - x);
+
+  document.getElementById(document.querySelector('body').getAttribute("tankid")).style.transform=`rotate(${angle}deg)`;
+
+
+}
+
+function mouseDownHandler(event) {
+  shootPressed = true;
+}
+
+function mouseUpHandler(event) {
+  shootPressed = false;
+}
+
+function actorShoot() {
+  let elt = "#" + $("body").attr("tankid");
+  if (shootPressed) {
     shoot(elt);
     showArrow("#fire");
-    // console.log("Tirer tirer -------->");
   }
-};
+}
+
+function actorMoveShoot() {
+  let elt = "#" + $("body").attr("tankid");
+
+  if (rightPressed) {
+    ArrowRight(elt);
+    showArrow("#ArrowRight");
+  } else if (leftPressed) {
+    ArrowLeft(elt);
+    showArrow("#ArrowLeft");
+  } else if (upPressed) {
+    ArrowUp(elt);
+    showArrow("#ArrowUp");
+  } else if (downPressed) {
+    ArrowDown(elt);
+    showArrow("#ArrowDown");
+  }
+  actorShoot();
+  requestAnimationFrame(actorMoveShoot);
+}
 
 function getRandomColor() {
   const letters = "0123456789ABCDEF";
@@ -518,7 +573,7 @@ function generateEnnemie() {
   }
 }
 
-generateEnnemie();
+
 
 // Fonction pour générer un nombre aléatoire entre 0 et la longueur du tableau
 function getRandomIndex(arr) {
@@ -549,11 +604,11 @@ function onOverlap() {
           bulletElement.getBoundingClientRect()
         )
       ) {
-        console.log(
-          `la balle ${bulletElement.getAttribute("type")} a touché ${
-            tankElement.classList
-          }`
-        );
+        // console.log(
+        //   `la balle ${bulletElement.getAttribute("type")} a touché ${
+        //     tankElement.classList
+        //   }`
+        // );
 
         const test = `la balle ${bulletElement.getAttribute("type")} a touché ${
           tankElement.classList
@@ -561,16 +616,22 @@ function onOverlap() {
 
         switch (test) {
           case "la balle ennemie a touché tank":
-            tankElement.remove();
-           
+            tankElement.style.display="none";
+
+            document
+              .getElementById("gameOver_interface")
+              .classList.add("game_interface_active");
 
             break;
           case "la balle actor a touché tank ennemie":
             tankElement.remove();
             copyEnemiesNumber--;
 
-            score++ 
-             document.querySelector('.score span').textContent=formatScore(score, 5);
+            score++;
+            document.querySelector(".score span").textContent = formatScore(
+              score,
+              8
+            );
             break;
 
           default:
@@ -581,6 +642,11 @@ function onOverlap() {
       }
     });
   });
+
+  if (document.querySelectorAll(".ennemie").length == 0) {
+    copyEnemiesNumber = enemies;
+    generateEnnemie();
+  }
 
   requestAnimationFrame(onOverlap);
 }
@@ -598,7 +664,8 @@ function animateElementsRandomly() {
 
       switch (randomAction) {
         case 0:
-          shoot(elt);
+          // shoot(elt);
+          repeatAction(shoot, randomActionRepeat, enemiesSPEED, elt);
           break;
         case 1:
           repeatAction(ArrowDown, randomActionRepeat, enemiesSPEED, elt);
@@ -617,20 +684,68 @@ function animateElementsRandomly() {
   });
 }
 
+$("#restart").on("click", (e) => {
+  score = 0;
+  document.querySelector(".score span").textContent= "00000000";
+  document
+    .getElementById("gameOver_interface")
+    .classList.remove("game_interface_active");
+
+  const ennemies = document.querySelectorAll(".ennemie");
+  ennemies.forEach((ennemie) => {
+    ennemie.remove();
+  });
+
+  generateEnnemie();
+  actorClone.getAttribute("id")
+  document.getElementById(  actorClone.getAttribute("id")).style.display="block";
+
+});
+
+
+
+
+actorMoveShoot();
+
 // Appeler la fonction pour animer aléatoirement les éléments
 animateElementsRandomly();
 
-setTimeout(() => {
-  setInterval(() => {
-    animateElementsRandomly();
-  }, 2000);
-}, 5000);
+
+setInterval(()=>{
+  animateElementsRandomly()
+},2000)
 
 requestAnimationFrame(onOverlap);
+requestAnimationFrame(actorMoveShoot);
 
-setInterval(() => {
-  if (document.querySelectorAll(".ennemie").length == 0) {
-    copyEnemiesNumber = enemies;
-    generateEnnemie();
-  }
-}, 3000);
+$("#start").on("click", (e) => {
+
+  fn_init_tank();
+
+  document.getElementById("start_interface").classList.remove("game_interface_active");
+
+});
+
+
+function fn_share(){
+  if (navigator.share) {
+    navigator.share({
+        title: 'Tankverse',
+        text: 'Tankverse | Tank war - The Battle is now()',
+        url: 'https://flocod.github.io/tankverse',
+    })
+    .then(() => console.log('Partage réussi'))
+    .catch((error) => {console.log('Erreur de partage', error);  alert(error)});
+} else {
+    console.log(`Votre système ne prend pas en charge l'API de partage Web.`);
+    alert('Votre système ne prend pas en charge API de partage Web.')
+}
+}
+
+let shareBtns = document.querySelectorAll('.share_game');
+
+shareBtns.forEach((shareBtn)=>{
+  shareBtn.addEventListener('click', function() {
+    fn_share();
+});
+});
