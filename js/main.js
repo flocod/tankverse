@@ -2,7 +2,7 @@ let tankId = "tank" + Math.floor(Math.random() * 100000);
 document.querySelector(".body").setAttribute("tankid", tankId);
 
 let speed = 6;
-let actorClone="";
+let actorClone = "";
 let actorSpeed = 6;
 let ennemieSpeed = 40;
 let gunSpeed = 2600;
@@ -10,15 +10,16 @@ let actorGunSpeed = 2000;
 let ennemieGunSpeed = 4700;
 let score = 0;
 
+let isMute = false;
+
 var rightPressed = false;
 var leftPressed = false;
 var upPressed = false;
 var downPressed = false;
 var shootPressed = false;
 
-
-var x = window.innerWidth/2;
-var y = window.innerHeight-30;
+var x = window.innerWidth / 2;
+var y = window.innerHeight - 30;
 var angle = 0;
 
 // Tableau contenant le nombre de répétitions automatique possibles d'une action
@@ -95,9 +96,8 @@ const fn_init_tank = (type = "actor") => {
 
   document.querySelector(".body .gamer_verser").appendChild(tank);
 
-
   if (type === "actor") {
-    console.log("actorClone",actorClone);
+    console.log("actorClone", actorClone);
     actorClone = tank;
     let initTemp = makeNewPosition("#" + $("body").attr("tankid"));
     animateTo(
@@ -123,15 +123,17 @@ const fn_init_tank = (type = "actor") => {
   }
 };
 
-
-
 function swapSpeed(elt) {
-  if (Array.from(document.querySelector(elt).classList).includes("ennemie")) {
-    speed = ennemieSpeed;
-    gunSpeed = ennemieGunSpeed;
-  } else {
-    speed = actorSpeed;
-    gunSpeed = actorGunSpeed;
+  const tempElem = document.querySelector(elt);
+
+  if (tempElem) {
+    if (Array.from(tempElem.classList).includes("ennemie")) {
+      speed = ennemieSpeed;
+      gunSpeed = ennemieGunSpeed;
+    } else {
+      speed = actorSpeed;
+      gunSpeed = actorGunSpeed;
+    }
   }
 }
 
@@ -188,107 +190,109 @@ const initTank = (tankID, position) => {
 
 const shoot = async (elt) => {
   swapSpeed(elt);
+  let tempElem = document.querySelector(elt);
+  if (tempElem) {
+    let offset = $(elt).offset();
+    let width = $(elt).width();
+    let height = $(elt).height();
 
-  let offset = $(elt).offset();
-  let width = $(elt).width();
-  let height = $(elt).height();
+    let centerX = offset.left + width / 2 - 5;
+    let centerY = offset.top + height / 2 - 5;
 
-  let centerX = offset.left + width / 2 - 5;
-  let centerY = offset.top + height / 2 - 5;
+    let target_bullet = "bul" + Math.floor(Math.random() * 100000);
 
-  let target_bullet = "bul" + Math.floor(Math.random() * 100000);
+    let bullet = document.createElement("div");
 
-  let bullet = document.createElement("div");
+    bullet.setAttribute("id", target_bullet);
+    bullet.setAttribute("class", `bullet`);
+    bullet.setAttribute("for", `${elt}`);
+    bullet.setAttribute(
+      "type",
+      `${
+        Array.from(document.querySelector(elt).classList).includes("ennemie")
+          ? "ennemie"
+          : "actor"
+      }`
+    );
+    bullet.setAttribute(
+      "style",
+      `left:${centerX}px;top:${centerY}px; display:block;`
+    );
 
-  bullet.setAttribute("id", target_bullet);
-  bullet.setAttribute("class", `bullet`);
-  bullet.setAttribute("for", `${elt}`);
-  bullet.setAttribute(
-    "type",
-    `${
-      Array.from(document.querySelector(elt).classList).includes("ennemie")
-        ? "ennemie"
-        : "actor"
-    }`
-  );
-  bullet.setAttribute(
-    "style",
-    `left:${centerX}px;top:${centerY}px; display:block;`
-  );
+    if (Array.from(document.querySelector(elt).classList).includes("ennemie")) {
+      play_audio2("stop");
 
-  if (Array.from(document.querySelector(elt).classList).includes("ennemie")) {
-    play_audio2("stop");
+      play_audio2("play");
+    } else {
+      play_audio("stop");
 
-    play_audio2("play");
-  } else {
-    play_audio("stop");
+      play_audio("play");
+    }
 
-    play_audio("play");
-  }
+    // await playShoot();
 
-  // await playShoot();
+    document.querySelector(".body .gamer_verser").appendChild(bullet);
 
-  document.querySelector(".body .gamer_verser").appendChild(bullet);
+    let rotate = document.querySelector(elt).style.transform;
 
-  let rotate = document.querySelector(elt).style.transform;
+    setTimeout(() => {
+      $("#" + target_bullet).remove();
+    }, 2000);
 
-  setTimeout(() => {
-    $("#" + target_bullet).remove();
-  }, 2000);
+    switch (rotate) {
+      case "rotate(-90deg)":
+        $("#" + target_bullet).animate(
+          {
+            left: "-200%",
+          },
+          {
+            duration: gunSpeed,
+            easing: "linear",
+          }
+        );
 
-  switch (rotate) {
-    case "rotate(-90deg)":
-      $("#" + target_bullet).animate(
-        {
-          left: "-200%",
-        },
-        {
-          duration: gunSpeed,
-          easing: "linear",
-        }
-      );
+        break;
 
-      break;
+      case "rotate(0deg)":
+        $("#" + target_bullet).animate(
+          {
+            top: "-200%",
+          },
+          {
+            duration: gunSpeed,
+            easing: "linear",
+          }
+        );
 
-    case "rotate(0deg)":
-      $("#" + target_bullet).animate(
-        {
-          top: "-200%",
-        },
-        {
-          duration: gunSpeed,
-          easing: "linear",
-        }
-      );
+        break;
+      case "rotate(90deg)":
+        $("#" + target_bullet).animate(
+          {
+            left: "200%",
+          },
+          {
+            duration: gunSpeed,
+            easing: "linear",
+          }
+        );
 
-      break;
-    case "rotate(90deg)":
-      $("#" + target_bullet).animate(
-        {
-          left: "200%",
-        },
-        {
-          duration: gunSpeed,
-          easing: "linear",
-        }
-      );
+        break;
+      case "rotate(180deg)":
+        $("#" + target_bullet).animate(
+          {
+            top: "200%",
+          },
+          {
+            duration: gunSpeed,
+            easing: "linear",
+          }
+        );
 
-      break;
-    case "rotate(180deg)":
-      $("#" + target_bullet).animate(
-        {
-          top: "200%",
-        },
-        {
-          duration: gunSpeed,
-          easing: "linear",
-        }
-      );
+        break;
 
-      break;
-
-    default:
-      break;
+      default:
+        break;
+    }
   }
 };
 
@@ -299,97 +303,121 @@ function vibreAction() {
 }
 
 const ArrowLeft = (elt) => {
-  let rotate = document.querySelector(elt).style.transform;
-  swapSpeed(elt);
-  if (rotate != "rotate(-90deg)") {
-    $(elt).css("transform", "rotate(-90deg)");
-  } else {
-    let tempPos = 0;
-    let w = window.innerWidth - $(elt).width();
+  const tempElem = document.querySelector(elt);
 
-    let position = $(elt).position();
-    tempPos = position.left - speed;
-
-    if (tempPos <= 0) {
-      let params = {
-        left: 0,
-      };
-      animateTo(elt, params);
-    } else if (tempPos >= w) {
-      let params = {
-        left: w,
-      };
-      animateTo(elt, params);
+  if (tempElem) {
+    let rotate = document.querySelector(elt).style.transform;
+    swapSpeed(elt);
+    if (rotate != "rotate(-90deg)") {
+      $(elt).css("transform", "rotate(-90deg)");
     } else {
-      let params = {
-        left: tempPos,
-      };
-      animateTo(elt, params);
+      let tempPos = 0;
+      let w = window.innerWidth - $(elt).width();
+
+      let position = $(elt).position();
+      tempPos = position.left - speed;
+
+      if (tempPos <= 0) {
+        let params = {
+          left: 0,
+        };
+        animateTo(elt, params);
+      } else if (tempPos >= w) {
+        let params = {
+          left: w,
+        };
+        animateTo(elt, params);
+      } else {
+        let params = {
+          left: tempPos,
+        };
+        animateTo(elt, params);
+      }
     }
   }
 };
 
 const ArrowUp = (elt) => {
-  let rotate = document.querySelector(elt).style.transform;
-  swapSpeed(elt);
-  if (rotate != "rotate(0deg)") {
-    $(elt).css("transform", "rotate(0deg)");
-  } else {
-    let tempPos = 0;
-    let h = window.innerHeight - $(elt).height();
+  const tempElem = document.querySelector(elt);
 
-    let position = $(elt).position();
-    tempPos = position.top - speed;
-    if (tempPos <= 0) {
-      $(elt).css("top", 0 + "px");
-    } else if (tempPos >= h) {
-      $(elt).css("top", h + "px");
+  if (tempElem) {
+    let rotate = document.querySelector(elt).style.transform;
+    swapSpeed(elt);
+    if (rotate != "rotate(0deg)") {
+      $(elt).css("transform", "rotate(0deg)");
     } else {
-      $(elt).css("top", tempPos + "px");
+      let tempPos = 0;
+      let h = window.innerHeight - $(elt).height();
+
+      let position = $(elt).position();
+      tempPos = position.top - speed;
+      if (tempPos <= 0) {
+        $(elt).css("top", 0 + "px");
+      } else if (tempPos >= h) {
+        $(elt).css("top", h + "px");
+      } else {
+        $(elt).css("top", tempPos + "px");
+      }
     }
   }
 };
 
 const ArrowRight = (elt) => {
-  let rotate = document.querySelector(elt).style.transform;
+  const tempElem = document.querySelector(elt);
 
-  swapSpeed(elt);
+  if (tempElem) {
+    let rotate = document.querySelector(elt).style.transform;
 
-  if (rotate != "rotate(90deg)") {
-    $(elt).css("transform", "rotate(90deg)");
-  } else {
-    let tempPos = 0;
-    let w = window.innerWidth - $(elt).width();
+    swapSpeed(elt);
 
-    let position = $(elt).position();
-    tempPos = position.left + speed;
-    if (tempPos <= 0) {
-      $(elt).css("left", 0 + "px");
-    } else if (tempPos >= w) {
-      $(elt).css("left", w + "px");
+    if (rotate != "rotate(90deg)") {
+      $(elt).css("transform", "rotate(90deg)");
     } else {
-      $(elt).css("left", tempPos + "px");
+      let tempPos = 0;
+      let w = window.innerWidth - $(elt).width();
+
+      let position = $(elt).position();
+      tempPos = position.left + speed;
+      if (tempPos <= 0) {
+        $(elt).css("left", 0 + "px");
+      } else if (tempPos >= w) {
+        $(elt).css("left", w + "px");
+      } else {
+        $(elt).css("left", tempPos + "px");
+      }
     }
   }
 };
 
-const ArrowDown = (elt) => {
-  let rotate = document.querySelector(elt).style.transform;
-  swapSpeed(elt);
-  if (rotate != "rotate(180deg)") {
-    $(elt).css("transform", "rotate(180deg)");
-  } else {
-    let tempPos = 0;
-    let h = window.innerHeight - $(elt).height();
+function isElement(elt) {
+  const tempElem = document.querySelector(elt);
 
-    let position = $(elt).position();
-    tempPos = position.top + speed;
-    if (tempPos <= 0) {
-      $(elt).css("top", 0 + "px");
-    } else if (tempPos >= h) {
-      $(elt).css("top", h + "px");
+  if (tempElem) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+const ArrowDown = (elt) => {
+  if (isElement(elt)) {
+    let rotate = document.querySelector(elt).style.transform;
+    swapSpeed(elt);
+    if (rotate != "rotate(180deg)") {
+      $(elt).css("transform", "rotate(180deg)");
     } else {
-      $(elt).css("top", tempPos + "px");
+      let tempPos = 0;
+      let h = window.innerHeight - $(elt).height();
+
+      let position = $(elt).position();
+      tempPos = position.top + speed;
+      if (tempPos <= 0) {
+        $(elt).css("top", 0 + "px");
+      } else if (tempPos >= h) {
+        $(elt).css("top", h + "px");
+      } else {
+        $(elt).css("top", tempPos + "px");
+      }
     }
   }
 };
@@ -431,7 +459,6 @@ const showArrow = (elt) => {
   }, 100);
 };
 
-
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 // document.addEventListener("mousemove", mouseMoveHandler, false);
@@ -441,7 +468,6 @@ document.addEventListener("keyup", keyUpHandler, false);
 function keyDownHandler(event) {
   if (event.keyCode == 39) {
     rightPressed = true;
-
   } else if (event.keyCode == 37) {
     leftPressed = true;
   } else if (event.keyCode == 38) {
@@ -468,15 +494,17 @@ function keyUpHandler(event) {
 }
 
 function mouseMoveHandler(event) {
-  var rect = document.getElementById(document.querySelector('body').getAttribute("tankid")).getBoundingClientRect();
+  var rect = document
+    .getElementById(document.querySelector("body").getAttribute("tankid"))
+    .getBoundingClientRect();
   var mouseX = event.clientX - rect.left;
   var mouseY = event.clientY - rect.top;
 
   angle = Math.atan2(mouseY - y, mouseX - x);
 
-  document.getElementById(document.querySelector('body').getAttribute("tankid")).style.transform=`rotate(${angle}deg)`;
-
-
+  document.getElementById(
+    document.querySelector("body").getAttribute("tankid")
+  ).style.transform = `rotate(${angle}deg)`;
 }
 
 function mouseDownHandler(event) {
@@ -573,8 +601,6 @@ function generateEnnemie() {
   }
 }
 
-
-
 // Fonction pour générer un nombre aléatoire entre 0 et la longueur du tableau
 function getRandomIndex(arr) {
   return Math.floor(Math.random() * arr.length);
@@ -616,11 +642,24 @@ function onOverlap() {
 
         switch (test) {
           case "la balle ennemie a touché tank":
-            tankElement.style.display="none";
+            tankElement.style.display = "none";
 
             document
               .getElementById("gameOver_interface")
               .classList.add("game_interface_active");
+
+            const score_final = document.getElementById("score_final");
+            let i = 0;
+
+            function updateScore() {
+              if (i <= score) {
+                score_final.textContent = formatScore(i, 8);
+                i++;
+                setTimeout(updateScore, 30);
+              }
+            }
+
+            updateScore();
 
             break;
           case "la balle actor a touché tank ennemie":
@@ -686,7 +725,7 @@ function animateElementsRandomly() {
 
 $("#restart").on("click", (e) => {
   score = 0;
-  document.querySelector(".score span").textContent= "00000000";
+  document.querySelector(".score span").textContent = "00000000";
   document
     .getElementById("gameOver_interface")
     .classList.remove("game_interface_active");
@@ -697,55 +736,105 @@ $("#restart").on("click", (e) => {
   });
 
   generateEnnemie();
-  actorClone.getAttribute("id")
-  document.getElementById(  actorClone.getAttribute("id")).style.display="block";
-
+  actorClone.getAttribute("id");
+  document.getElementById(actorClone.getAttribute("id")).style.display =
+    "block";
 });
-
-
-
 
 actorMoveShoot();
 
 // Appeler la fonction pour animer aléatoirement les éléments
 animateElementsRandomly();
 
-
-setInterval(()=>{
-  animateElementsRandomly()
-},2000)
+setInterval(() => {
+  animateElementsRandomly();
+}, 2000);
 
 requestAnimationFrame(onOverlap);
 requestAnimationFrame(actorMoveShoot);
 
 $("#start").on("click", (e) => {
-
   fn_init_tank();
 
-  document.getElementById("start_interface").classList.remove("game_interface_active");
-
+  document
+    .getElementById("start_interface")
+    .classList.remove("game_interface_active");
 });
 
-
-function fn_share(){
+function fn_share() {
   if (navigator.share) {
-    navigator.share({
-        title: 'Tankverse',
-        text: 'Tankverse | Tank war - The Battle is now()',
-        url: 'https://flocod.github.io/tankverse',
-    })
-    .then(() => console.log('Partage réussi'))
-    .catch((error) => {console.log('Erreur de partage', error);  alert(error)});
-} else {
+    navigator
+      .share({
+        title: "Tankverse",
+        text: "Tankverse | Tank war - The Battle is now()",
+        url: "https://flocod.github.io/tankverse",
+      })
+      .then(() => console.log("Partage réussi"))
+      .catch((error) => {
+        console.log("Erreur de partage", error);
+        alert(error);
+      });
+  } else {
     console.log(`Votre système ne prend pas en charge l'API de partage Web.`);
-    alert('Votre système ne prend pas en charge API de partage Web.')
-}
+    alert("Votre système ne prend pas en charge API de partage Web.");
+  }
 }
 
-let shareBtns = document.querySelectorAll('.share_game');
+let shareBtns = document.querySelectorAll(".share_game");
 
-shareBtns.forEach((shareBtn)=>{
-  shareBtn.addEventListener('click', function() {
+shareBtns.forEach((shareBtn) => {
+  shareBtn.addEventListener("click", function () {
     fn_share();
+  });
 });
+
+// let muteBtn = document.getElementById("muteBtn");
+
+// function swapSon(value) {
+//   // Sélectionnez tous les éléments audio et vidéo sur la page
+//   const mediaElements = document.querySelectorAll("audio, video");
+
+//   mediaElements.forEach((mediaElement,index)=>{
+//     mediaElement.muted = value;
+//   });
+
+//   isMute = !value;
+//   console.log("isMute:", isMute);
+// }
+
+// muteBtn.addEventListener("click", () => {
+//   if (isMute) {
+//     swapSon(false);
+//     muteBtn.classList.remove("son_btn_active");
+//   } else{
+//     swapSon(true);
+//     muteBtn.classList.add("son_btn_active");
+//   }
+// });
+
+let muteBtn = document.getElementById("muteBtn");
+// let isMute = false; // Définissez une variable isMute pour suivre l'état du bouton mute
+
+function swapSon(value) {
+  // Sélectionnez tous les éléments audio et vidéo sur la page
+  const mediaElements = document.querySelectorAll("audio, video");
+
+  mediaElements.forEach((mediaElement) => {
+    mediaElement.muted = value;
+  });
+
+  isMute = value;
+  console.log("isMute:", isMute);
+}
+
+muteBtn.addEventListener("click", () => {
+  if (isMute) {
+    swapSon(false);
+    muteBtn.classList.remove("son_btn_active");
+  } else {
+    swapSon(true);
+    muteBtn.classList.add("son_btn_active");
+  }
 });
+
+muteBtn.click();

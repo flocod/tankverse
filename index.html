@@ -52,6 +52,10 @@
   <body theme="sunny" class="body theme" text_color="">
     <div class="gamer_verser">
       <div class="score">Score : <span>00000000</span></div>
+      <div id="muteBtn" class="son_btn">
+     
+       <img src="./images/volume.png" alt="bouton volume">
+      </div>
 
       <!-- <div id="tank1" class="tank">
         <img src="images/tank.svg" alt="">
@@ -75,29 +79,35 @@
 
     <div id="gameOver_interface" class="game_interface">
       <div class="title">Game Over</div>
-
+      <div class="score_interface">Your score is <span id="score_final" behavior="" direction="">00005457</span></div>
       <div class="btn_contain">
-        <button  type="button" class="btn_item share_game">Share with your Friends</button>
-        <button id="restart" type="button" class="btn_item">Restart the game</button>
-
+        <button type="button" class="btn_item share_game">
+          Share with your Friends
+        </button>
+        <button id="restart" type="button" class="btn_item">
+          Restart the game
+        </button>
       </div>
     </div>
 
     <div id="start_interface" class="game_interface game_interface_active">
       <div class="title">Tankverse</div>
-
+      <div class="score_interface">Getstarted with the battle</div>
       <div class="btn_contain">
- 
-        <button type="button" class="btn_item share_game">Share with your Friends</button>
-        <button id="start" type="button" class="btn_item">Start the game</button>
+        <button type="button" class="btn_item share_game">
+          Share with your Friends
+        </button>
+        <button id="start" type="button" class="btn_item">
+          Start the game
+        </button>
       </div>
     </div>
 
     <audio
       id="fired"
-      onload="this.pause();"
       style="visibility: hidden"
       src="sons/fire.mp3"
+      onload="this.pause();"
     ></audio>
     <audio
       id="shoot"

@@ -954,6 +954,10 @@ a :hover {
   -webkit-transform: translateX(50%);
           transform: translateX(50%);
   bottom: 0px;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
 }
 .padtouch .fire:active {
   opacity: 1;
@@ -974,6 +978,24 @@ a :hover {
   top: 2%;
   font-size: 1.5em;
   z-index: 10;
+}
+
+.son_btn {
+  position: fixed;
+  left: 2%;
+  line-height: 1em;
+  top: 2%;
+  font-size: 1.5em;
+  z-index: 10;
+  opacity: 0.5;
+  cursor: pointer;
+}
+.son_btn img {
+  width: 1.5em;
+}
+
+.son_btn_active {
+  opacity: 1;
 }
 
 .game_interface {
@@ -1016,6 +1038,18 @@ a :hover {
   .game_interface .title {
     font-size: 20vw;
   }
+}
+.game_interface .score_interface {
+  font-size: 3vw;
+  margin-bottom: 1em;
+}
+@media all and (max-width: 1000px) {
+  .game_interface .score_interface {
+    font-size: 6vw;
+  }
+}
+.game_interface .score_interface span {
+  text-decoration: underline;
 }
 .game_interface .btn_contain {
   display: -webkit-box;
@@ -1069,12 +1103,6 @@ a :hover {
     padding-left: 1em;
     padding-right: 1em;
   }
-}
-
-.start_interface {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
 }
 
 .game_interface_active {
