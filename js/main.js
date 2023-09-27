@@ -772,7 +772,7 @@ function fn_share() {
       .then(() => console.log("Partage réussi"))
       .catch((error) => {
         console.log("Erreur de partage", error);
-        alert(error);
+  
       });
   } else {
     console.log(`Votre système ne prend pas en charge l'API de partage Web.`);
